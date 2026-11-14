@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/osf-v1.schema.json
+apiVersion: story/v1
+kind: Character
+
+data:
+  id: stranger
+  name: Stranger
+  description: A voice in the dark. Nobody knows who it belongs to yet.

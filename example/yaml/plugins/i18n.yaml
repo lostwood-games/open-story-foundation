@@ -1,0 +1,17 @@
+# yaml-language-server: $schema=../../../schema/osf-v1.schema.json
+apiVersion: i18n/v1
+kind: Configuration
+data:
+  # Locale the story files are written in. Its text needs no Locale file.
+  source: Eng
+  # List of Locales that will be installed.
+  # This includes pluralization rules.
+  # `id` is used in Locale to map translation.
+  # `enforce` flag will set `openstory` language processor throw error with information what is missing.
+  locales:
+    Russian:
+      id: Rus
+      enforce: true
+    Japanese:
+      id: Jpn
+      enforce: false

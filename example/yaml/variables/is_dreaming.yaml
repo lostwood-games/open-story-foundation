@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/osf-v1.schema.json
+apiVersion: story/v1
+kind: Variable
+
+data:
+  id: is_dreaming
+  type: boolean
+  default: false

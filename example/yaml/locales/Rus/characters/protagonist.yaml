@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../../../schema/osf-v1.schema.json
+apiVersion: i18n/v1
+kind: Locale
+
+data:
+  language: Rus
+  values:
+    Character.protagonist.name: Ты
+    Character.protagonist.description: Персонаж игрока. Просыпается во тьме и не помнит, как туда попал.

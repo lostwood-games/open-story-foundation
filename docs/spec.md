@@ -1,10 +1,9 @@
 # Open Story format, v1
 
 This page defines what an Open Story (OSF) project contains. The machine-readable
-version is [`schema/osf-v1.schema.json`](../schema/osf-v1.schema.json), and
-[`tools/validate.py`](../tools/validate.py) checks everything the schema cannot.
-`osf validate` reports every rule below with a stable code (`OSF112`, ...); the full
-list is [`diagnostics.md`](diagnostics.md). The same projects can be written by hand in
+version is [`schema/osf-v1.schema.json`](../schema/osf-v1.schema.json). `osf validate`
+checks the schema and everything a schema cannot express, and reports every rule below
+with a stable code (`OSF112`, ...); the full list is [`diagnostics.md`](diagnostics.md). The same projects can be written by hand in
 the [OSF language](../osf/language.md) (`.osf` files), which compiles to these
 resources.
 

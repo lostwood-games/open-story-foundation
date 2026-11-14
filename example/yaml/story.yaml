@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../schema/osf-v1.schema.json
+apiVersion: story/v1
+kind: Story
+
+data:
+  id: LDOD
+  name: "Leviathan: The Last Day of The Decade"
+  # Dialogue the game starts with.
+  start: Dialogue.01_intro_scene

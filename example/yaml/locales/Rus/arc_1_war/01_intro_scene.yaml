@@ -1,0 +1,16 @@
+# yaml-language-server: $schema=../../../../../schema/osf-v1.schema.json
+apiVersion: i18n/v1
+kind: Locale
+
+data:
+  language: Rus
+  values:
+    Dialogue.01_intro_scene.nodes.node_01.content.title: ...
+    Dialogue.01_intro_scene.nodes.node_01.content.text: Где я?
+    Dialogue.01_intro_scene.nodes.node_02.content.text: Тебя окружает полная тьма.
+    Dialogue.01_intro_scene.nodes.node_03.content.text: |
+      О чём всё это?
+      Я сплю?
+    Dialogue.01_intro_scene.nodes.node_03.options.node_03_option_01.content.text: Да, спишь.
+    Dialogue.01_intro_scene.nodes.node_03.options.node_03_option_02.content.text: Нет. Глупец
+    Dialogue.01_intro_scene.nodes.node_04.content.text: Странно
