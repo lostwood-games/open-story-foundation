@@ -1,0 +1,10 @@
+# yaml-language-server: $schema=../../../../../schema/osf-v1.schema.json
+apiVersion: i18n/v1
+kind: Locale
+
+data:
+  language: Rus
+  values:
+    Dialogue.02_shadows_speak.nodes.node_01.content.text: Привет
+    Dialogue.02_shadows_speak.nodes.node_02.content.text: Ты не спишь. Больше нет.
+    Dialogue.02_shadows_speak.nodes.node_02.content.title: "{{ Character.stranger }}"

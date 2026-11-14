@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/osf-v1.schema.json
+apiVersion: story/v1
+kind: Character
+
+data:
+  id: protagonist
+  name: You
+  description: The player character. Wakes up in the dark with no memory of how they got there.

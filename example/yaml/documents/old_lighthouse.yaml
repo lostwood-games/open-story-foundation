@@ -1,0 +1,7 @@
+# yaml-language-server: $schema=../../../schema/osf-v1.schema.json
+apiVersion: story/v1
+kind: Document
+
+data:
+  id: old_lighthouse
+  name: The Old Lighthouse

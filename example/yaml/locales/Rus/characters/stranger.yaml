@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../../../schema/osf-v1.schema.json
+apiVersion: i18n/v1
+kind: Locale
+
+data:
+  language: Rus
+  values:
+    Character.stranger.name: Незнакомец
+    Character.stranger.description: Голос во тьме. Никто пока не знает, чей он.

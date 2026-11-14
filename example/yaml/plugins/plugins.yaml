@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/osf-v1.schema.json
+apiVersion: plugins/v1
+kind: Configuration
+
+data:
+  # List of plugins to install.
+  # story/v1 and dialogue/v1 are built in and do not need to be listed.
+  plugins:
+    - i18n/v1

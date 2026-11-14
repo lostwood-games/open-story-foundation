@@ -1,0 +1,18 @@
+# yaml-language-server: $schema=../../../schema/osf-v1.schema.json
+apiVersion: dialogue/v1
+kind: Dialogue
+
+data:
+  id: 02_shadows_speak
+  startNode: node_01
+  nodes:
+    node_01:
+      next: node_02
+      content:
+        speaker: Character.stranger
+        text: Hello
+    node_02:
+      content:
+        speaker: Character.stranger
+        title: "{{ Character.stranger }}"
+        text: You are not dreaming. Not anymore.

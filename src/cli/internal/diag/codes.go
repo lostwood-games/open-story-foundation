@@ -1,0 +1,87 @@
+package diag
+
+// One variable per rule, so producers refer to rules by name and a typo fails
+// at start-up rather than in a test.
+var (
+	InvalidUTF8         = rule("invalid-utf8")
+	UnexpectedCharacter = rule("unexpected-character")
+	BadEscape           = rule("bad-escape")
+	UnclosedString      = rule("unclosed-string")
+	UnclosedLongText    = rule("unclosed-long-text")
+	UnclosedComment     = rule("unclosed-comment")
+	BadNumber           = rule("bad-number")
+	UnexpectedToken     = rule("unexpected-token")
+	UnknownBlock        = rule("unknown-block")
+	MisplacedBlock      = rule("misplaced-block")
+	UnknownField        = rule("unknown-field")
+	DuplicateField      = rule("duplicate-field")
+	WrongSeparator      = rule("wrong-separator")
+	ReservedWord        = rule("reserved-word")
+	ExpectedID          = rule("expected-id")
+	ExpectedString      = rule("expected-string")
+	ExpectedValue       = rule("expected-value")
+	UnclosedBlock       = rule("unclosed-block")
+	BadReference        = rule("bad-reference")
+	YAMLSyntax          = rule("yaml-syntax")
+	EmptyFile           = rule("empty-file")
+	MultipleDocuments   = rule("multiple-documents")
+	NoProject           = rule("no-project")
+	ReadError           = rule("read-error")
+
+	NoVersions            = rule("no-versions")
+	DuplicateVersions     = rule("duplicate-versions")
+	UnknownPlugin         = rule("unknown-plugin")
+	UnsupportedVersion    = rule("unsupported-version")
+	MissingVersion        = rule("missing-version")
+	PluginNotEnabled      = rule("plugin-not-enabled")
+	NoStory               = rule("no-story")
+	DuplicateStory        = rule("duplicate-story")
+	InvalidID             = rule("invalid-id")
+	DuplicateID           = rule("duplicate-id")
+	MissingField          = rule("missing-field")
+	UnknownStart          = rule("unknown-start")
+	UnknownSpeaker        = rule("unknown-speaker")
+	UnknownNode           = rule("unknown-node")
+	UnknownDialogue       = rule("unknown-dialogue")
+	UnknownStartNode      = rule("unknown-start-node")
+	NoNodes               = rule("no-nodes")
+	NextAndOptions        = rule("next-and-options")
+	DuplicateNode         = rule("duplicate-node")
+	DuplicateOption       = rule("duplicate-option")
+	UnknownTextReference  = rule("unknown-text-reference")
+	BadTextReferenceField = rule("bad-text-reference-field")
+	WrongType             = rule("wrong-type")
+	UnknownKind           = rule("unknown-kind")
+	DuplicatePlugin       = rule("duplicate-plugin")
+
+	UnknownVariable     = rule("unknown-variable")
+	WrongValueType      = rule("wrong-value-type")
+	BadDefault          = rule("bad-default")
+	UnknownVariableType = rule("unknown-variable-type")
+	NumberTooLarge      = rule("number-too-large")
+	NotANumber          = rule("not-a-number")
+	NegativeAmount      = rule("negative-amount")
+
+	DuplicateI18n         = rule("duplicate-i18n")
+	InvalidLocaleID       = rule("invalid-locale-id")
+	DuplicateLocale       = rule("duplicate-locale")
+	UnknownLocale         = rule("unknown-locale")
+	UnknownTranslationKey = rule("unknown-translation-key")
+	DuplicateTranslation  = rule("duplicate-translation")
+	ReferencesDiffer      = rule("references-differ")
+	MissingTranslation    = rule("missing-translation")
+	LocaleFolderMismatch  = rule("locale-folder-mismatch")
+	NotTranslatable       = rule("not-translatable")
+	BadTranslationKey     = rule("bad-translation-key")
+
+	UnreachableNode = rule("unreachable-node")
+	Untranslated    = rule("untranslated")
+)
+
+func rule(name string) Rule {
+	r, ok := byName[name]
+	if !ok {
+		panic("diag: no rule named " + name)
+	}
+	return r
+}
