@@ -36,7 +36,8 @@ spec: structure, ids, references, variable values and translations. Every
 problem is reported with its file, line, column, severity and rule code
 (docs/diagnostics.md), and a close id is suggested for a misspelled reference.
 
-dir is read as OSF YAML or JSON resources, one per file.
+dir is read as .osf source if it holds any .osf file, otherwise as OSF YAML
+or JSON resources.
 
 Options:
   -format json   Print the diagnostics as JSON on stdout instead of text on
