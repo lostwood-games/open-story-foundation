@@ -1,0 +1,11 @@
+// Pins the language and plugin versions this project is written against.
+// Change a version here, and only here, to upgrade. language is the version
+// of this syntax; story and dialogue are built in; the rest are plugins.
+
+Versions {
+  language = "1"
+
+  story    = "v1"
+  dialogue = "v1"
+  i18n     = "v1"  // plugin: i18n settings and locale blocks
+}

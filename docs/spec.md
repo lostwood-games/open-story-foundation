@@ -4,10 +4,10 @@ This page defines what an Open Story (OSF) project contains. The machine-readabl
 version is [`schema/osf-v1.schema.json`](../schema/osf-v1.schema.json). `osf validate`
 checks the schema and everything a schema cannot express, and reports every rule below
 with a stable code (`OSF112`, ...); the full list is [`diagnostics.md`](diagnostics.md). The same projects can be written by hand in
-the [OSF language](../osf/language.md) (`.osf` files), which compiles to these
+the [OSF language](language.md) (`.osf` files), which compiles to these
 resources.
 
-Code blocks here are checked by `cli/docs_test.go`: a block fenced `yaml` is a whole
+Code blocks here are checked by a test: a block fenced `yaml` is a whole
 resource file that `osf` loads without an error; `yaml fragment` marks part of one.
 
 ## 1. Files
@@ -333,7 +333,7 @@ from being edited.
 ## 5. Playing a dialogue
 
 This is how a player runs a project; `osf play` and the language server's Play panel
-implement it (`cli/internal/play`).
+implement it (`src/cli/internal/play`).
 
 1. Play starts at a chosen dialogue, else the Story's `start`, else the first dialogue
    in file order. Every Variable is set to its `default`.
