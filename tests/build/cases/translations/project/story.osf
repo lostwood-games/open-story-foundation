@@ -1,0 +1,32 @@
+Versions {
+  language = "1"
+  story    = "v1"
+  dialogue = "v1"
+  i18n     = "v1"
+}
+
+Story tale {
+  name  = "Tale"
+  start = Dialogue.opening
+}
+
+I18n {
+  source = Eng
+  Locale Rus "Russian" { enforce = true }
+  Locale Jpn "Japanese"
+}
+
+Character narrator {
+  name = "Narrator"
+}
+
+Dialogue opening {
+  Node first {
+    speaker: narrator
+    text: "Once upon a time."
+
+    Option go {
+      text: "Continue"
+    }
+  }
+}

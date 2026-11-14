@@ -472,9 +472,9 @@ byte. The example projects use it.
 
 ### 11.1 YAML, JSON and `.osf`
 
-`osf build` writes the resources of §8 as YAML, or as JSON with `-format json` (same
-files, `.json` extension, no comments). `osf import` reads either back into `.osf`
-source in the canonical layout: a resource file written by `osf build` names its source
+`osf build` writes the resources of §8 as JSON, or as YAML with `-o yaml` (same
+files, `.yaml` extension, comments kept). `osf import` reads either back into `.osf`
+source in the canonical layout: a YAML file written by `osf build` names its source
 `.osf` file in its first comment line and goes back there, so a built project returns to
 its original files; anything else is laid out as `versions.osf`, `story.osf` (`Story`
 and `I18n`), `characters.osf`, `documents.osf`, `variables.osf`, one `<folder>/<dialogue id>.osf` per
@@ -485,7 +485,7 @@ converts one file either way for editors.
 
 Comments travel with the statement they belong to: the comment lines directly above a
 statement, the lines above it that stand apart (a blank line between), and the comment
-at the end of its last line. `osf build` writes them as YAML `#` comments in the same
+at the end of its last line. `osf build -o yaml` writes them as YAML `#` comments in the same
 places (a `// text` line becomes `# text`, each line of a `/* */` comment becomes `# `
 plus the line), and `osf import` reads them back, so YAML comments written by hand in
 those places come back as `//` comments too.

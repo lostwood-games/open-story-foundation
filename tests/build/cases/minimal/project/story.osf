@@ -1,0 +1,26 @@
+Versions {
+  language = "1"
+  story    = "v1"
+  dialogue = "v1"
+}
+
+Story demo {
+  name  = "Demo"
+  start = Dialogue.greeting
+}
+
+Character guide {
+  name = "Guide"
+}
+
+Dialogue greeting {
+  Node hello {
+    speaker: guide
+    text: "Hello, traveller."
+    next: bye
+  }
+
+  Node bye {
+    text: "Goodbye."
+  }
+}

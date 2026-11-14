@@ -1,0 +1,9 @@
+{
+  "apiVersion": "story/v1",
+  "kind": "Variable",
+  "data": {
+    "id": "has_lantern",
+    "type": "boolean",
+    "default": false
+  }
+}

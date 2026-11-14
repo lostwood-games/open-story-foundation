@@ -1,0 +1,8 @@
+{
+  "apiVersion": "story/v1",
+  "kind": "Document",
+  "data": {
+    "id": "lantern",
+    "name": "the lantern"
+  }
+}
