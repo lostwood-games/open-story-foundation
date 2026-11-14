@@ -54,7 +54,7 @@ func lineComment(trail string) string {
 // osfComment turns a YAML comment block back into .osf comment lines. A run
 // of lines from `/*` to `*/` is a block comment and keeps its lines as they
 // were; every other line becomes a `//` comment. Editor directives and the
-// head comment osf build writes are not comments of the resource.
+// head comment osf convert writes are not comments of the resource.
 func osfComment(text string) []string {
 	if text == "" {
 		return nil

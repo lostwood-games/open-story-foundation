@@ -1,0 +1,22 @@
+{
+  "apiVersion": "dialogue/v1",
+  "kind": "Dialogue",
+  "data": {
+    "id": "greeting",
+    "startNode": "hello",
+    "nodes": {
+      "hello": {
+        "next": "bye",
+        "content": {
+          "speaker": "Character.guide",
+          "text": "Hello, traveller."
+        }
+      },
+      "bye": {
+        "content": {
+          "text": "Goodbye."
+        }
+      }
+    }
+  }
+}

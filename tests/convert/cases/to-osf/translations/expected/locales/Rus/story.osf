@@ -1,0 +1,17 @@
+Locale Rus {
+  Story tale {
+    name = "Сказка"
+  }
+
+  Character narrator {
+    name = "Рассказчик"
+  }
+
+  Dialogue opening {
+    Node first {
+      text: "Давным-давно."
+
+      Option go { text: "Дальше" }
+    }
+  }
+}

@@ -1,0 +1,4 @@
+Character merchant {
+  name        = "Merchant"
+  description = "Sells {{ Document.lantern }}."
+}

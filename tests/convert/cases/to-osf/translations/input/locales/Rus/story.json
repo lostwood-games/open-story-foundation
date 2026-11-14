@@ -1,0 +1,13 @@
+{
+  "apiVersion": "i18n/v1",
+  "kind": "Locale",
+  "data": {
+    "language": "Rus",
+    "values": {
+      "Story.tale.name": "Сказка",
+      "Character.narrator.name": "Рассказчик",
+      "Dialogue.opening.nodes.first.content.text": "Давным-давно.",
+      "Dialogue.opening.nodes.first.options.go.content.text": "Дальше"
+    }
+  }
+}

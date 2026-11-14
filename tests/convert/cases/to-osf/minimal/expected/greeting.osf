@@ -1,0 +1,11 @@
+Dialogue greeting {
+  Node hello {
+    speaker: guide
+    text: "Hello, traveller."
+    next: bye
+  }
+
+  Node bye {
+    text: "Goodbye."
+  }
+}

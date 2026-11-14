@@ -1,0 +1,4 @@
+Story demo {
+  name  = "Demo"
+  start = Dialogue.greeting
+}

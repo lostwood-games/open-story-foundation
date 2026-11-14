@@ -1,0 +1,6 @@
+Versions {
+  language = "1"
+
+  story    = "v1"
+  dialogue = "v1"
+}

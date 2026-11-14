@@ -1,0 +1,17 @@
+{
+  "apiVersion": "i18n/v1",
+  "kind": "Configuration",
+  "data": {
+    "source": "Eng",
+    "locales": {
+      "Russian": {
+        "id": "Rus",
+        "enforce": true
+      },
+      "Japanese": {
+        "id": "Jpn",
+        "enforce": false
+      }
+    }
+  }
+}

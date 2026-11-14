@@ -1,0 +1,3 @@
+Variable gold: UnsignedNumber = 5
+Variable has_lantern: Boolean = false
+Variable mood: Number = -1

@@ -1,0 +1,9 @@
+{
+  "apiVersion": "story/v1",
+  "kind": "Variable",
+  "data": {
+    "id": "gold",
+    "type": "unsignedNumber",
+    "default": 5
+  }
+}
