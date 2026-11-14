@@ -1,0 +1,240 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://open-story.dev/schema/osf-v1.schema.json",
+  "title": "Open Story (OSF) v1 resource",
+  "description": "One OSF resource file. See docs/spec.md.",
+  "type": "object",
+  "required": ["apiVersion", "kind", "data"],
+  "additionalProperties": false,
+  "properties": {
+    "apiVersion": { "enum": ["story/v1", "dialogue/v1", "i18n/v1", "plugins/v1"] },
+    "kind": { "enum": ["Story", "Character", "Document", "Variable", "Dialogue", "Locale", "Configuration"] },
+    "data": { "type": "object" }
+  },
+  "allOf": [
+    { "if": { "required": ["apiVersion", "kind"], "properties": { "apiVersion": { "const": "story/v1" } } },
+      "then": { "properties": { "kind": { "enum": ["Story", "Character", "Document", "Variable"] } } } },
+    { "if": { "required": ["apiVersion", "kind"], "properties": { "apiVersion": { "const": "dialogue/v1" } } },
+      "then": { "properties": { "kind": { "const": "Dialogue" } } } },
+    { "if": { "required": ["apiVersion", "kind"], "properties": { "apiVersion": { "const": "i18n/v1" } } },
+      "then": { "properties": { "kind": { "enum": ["Locale", "Configuration"] } } } },
+    { "if": { "required": ["apiVersion", "kind"], "properties": { "apiVersion": { "const": "plugins/v1" } } },
+      "then": { "properties": { "kind": { "const": "Configuration" } } } },
+
+    { "if": { "required": ["apiVersion", "kind"], "properties": { "apiVersion": { "const": "story/v1" }, "kind": { "const": "Story" } } },
+      "then": { "properties": { "data": { "$ref": "#/$defs/Story" } } } },
+    { "if": { "required": ["apiVersion", "kind"], "properties": { "apiVersion": { "const": "story/v1" }, "kind": { "const": "Character" } } },
+      "then": { "properties": { "data": { "$ref": "#/$defs/Character" } } } },
+    { "if": { "required": ["apiVersion", "kind"], "properties": { "apiVersion": { "const": "story/v1" }, "kind": { "const": "Document" } } },
+      "then": { "properties": { "data": { "$ref": "#/$defs/Document" } } } },
+    { "if": { "required": ["apiVersion", "kind"], "properties": { "apiVersion": { "const": "story/v1" }, "kind": { "const": "Variable" } } },
+      "then": { "properties": { "data": { "$ref": "#/$defs/Variable" } } } },
+    { "if": { "required": ["apiVersion", "kind"], "properties": { "apiVersion": { "const": "dialogue/v1" }, "kind": { "const": "Dialogue" } } },
+      "then": { "properties": { "data": { "$ref": "#/$defs/Dialogue" } } } },
+    { "if": { "required": ["apiVersion", "kind"], "properties": { "apiVersion": { "const": "i18n/v1" }, "kind": { "const": "Locale" } } },
+      "then": { "properties": { "data": { "$ref": "#/$defs/Locale" } } } },
+    { "if": { "required": ["apiVersion", "kind"], "properties": { "apiVersion": { "const": "i18n/v1" }, "kind": { "const": "Configuration" } } },
+      "then": { "properties": { "data": { "$ref": "#/$defs/I18nConfiguration" } } } },
+    { "if": { "required": ["apiVersion", "kind"], "properties": { "apiVersion": { "const": "plugins/v1" }, "kind": { "const": "Configuration" } } },
+      "then": { "properties": { "data": { "$ref": "#/$defs/PluginsConfiguration" } } } }
+  ],
+  "$defs": {
+    "id": {
+      "description": "Identifier, unique per kind (per parent for nodes and options). No dots: dots separate parts of references and translation keys.",
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_][A-Za-z0-9_-]*$"
+    },
+    "localeId": { "type": "string", "pattern": "^[A-Z][a-z]{2}$", "description": "Three-letter locale id, e.g. Eng, Rus, Jpn." },
+    "text": { "type": "string", "description": "Translatable text in the source locale. May contain {{ Kind.id.field }} references." },
+    "characterRef": { "type": "string", "pattern": "^Character\\.[A-Za-z0-9_][A-Za-z0-9_-]*$" },
+    "dialogueRef": { "type": "string", "pattern": "^Dialogue\\.[A-Za-z0-9_][A-Za-z0-9_-]*$" },
+    "next": {
+      "description": "A node id in the same dialogue, or Dialogue.<id> to jump to another dialogue's startNode.",
+      "type": "string",
+      "pattern": "^([A-Za-z0-9_][A-Za-z0-9_-]*|Dialogue\\.[A-Za-z0-9_][A-Za-z0-9_-]*)$"
+    },
+    "value": { "type": ["boolean", "integer"], "minimum": -2147483648, "maximum": 2147483647, "description": "A Variable value: true, false or a whole number that fits in 32 bits." },
+    "variableSets": {
+      "description": "Map of Variable id to the value it is set to, or to an operation that adds to or subtracts from a number.",
+      "type": "object",
+      "propertyNames": { "$ref": "#/$defs/id" },
+      "additionalProperties": { "if": { "type": "object" }, "then": { "$ref": "#/$defs/SetOperation" }, "else": { "$ref": "#/$defs/value" } }
+    },
+    "SetOperation": {
+      "type": "object",
+      "required": ["operation", "value"],
+      "additionalProperties": false,
+      "properties": {
+        "operation": { "enum": ["add", "subtract"] },
+        "value": { "type": "integer", "minimum": 0, "maximum": 2147483647, "description": "The amount, 0 or more." }
+      }
+    },
+    "variableConditions": {
+      "description": "Map of Variable id to the value it must equal, or to a comparison with a number.",
+      "type": "object",
+      "propertyNames": { "$ref": "#/$defs/id" },
+      "additionalProperties": { "if": { "type": "object" }, "then": { "$ref": "#/$defs/Condition" }, "else": { "$ref": "#/$defs/value" } }
+    },
+    "Condition": {
+      "type": "object",
+      "required": ["operator", "value"],
+      "additionalProperties": false,
+      "properties": {
+        "operator": { "enum": ["!=", "<", "<=", ">", ">="] },
+        "value": { "type": "integer", "minimum": -2147483648, "maximum": 2147483647 }
+      }
+    },
+
+    "Story": {
+      "type": "object",
+      "required": ["id", "name"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "name": { "$ref": "#/$defs/text" },
+        "description": { "$ref": "#/$defs/text" },
+        "start": { "$ref": "#/$defs/dialogueRef" }
+      }
+    },
+    "Character": {
+      "type": "object",
+      "required": ["id", "name"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "name": { "$ref": "#/$defs/text" },
+        "description": { "$ref": "#/$defs/text" }
+      }
+    },
+    "Document": {
+      "type": "object",
+      "required": ["id", "name"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "name": { "$ref": "#/$defs/text" }
+      }
+    },
+    "Variable": {
+      "type": "object",
+      "required": ["id", "type", "default"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "type": { "enum": ["boolean", "number", "unsignedNumber"] },
+        "default": { "$ref": "#/$defs/value" }
+      },
+      "allOf": [
+        { "if": { "properties": { "type": { "const": "boolean" } } }, "then": { "properties": { "default": { "type": "boolean" } } } },
+        { "if": { "properties": { "type": { "const": "number" } } }, "then": { "properties": { "default": { "type": "integer" } } } },
+        { "if": { "properties": { "type": { "const": "unsignedNumber" } } }, "then": { "properties": { "default": { "type": "integer", "minimum": 0 } } } }
+      ]
+    },
+    "Dialogue": {
+      "type": "object",
+      "required": ["id", "startNode", "nodes"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "name": { "$ref": "#/$defs/text" },
+        "startNode": { "$ref": "#/$defs/id" },
+        "nodes": {
+          "type": "object",
+          "minProperties": 1,
+          "propertyNames": { "$ref": "#/$defs/id" },
+          "additionalProperties": { "$ref": "#/$defs/Node" }
+        }
+      }
+    },
+    "Content": {
+      "type": "object",
+      "required": ["text"],
+      "additionalProperties": false,
+      "properties": {
+        "speaker": { "$ref": "#/$defs/characterRef" },
+        "title": { "type": ["string", "null"], "description": "Shown speaker name. Overrides the speaker's name when both are set." },
+        "text": { "$ref": "#/$defs/text" }
+      }
+    },
+    "Node": {
+      "type": "object",
+      "required": ["content"],
+      "additionalProperties": false,
+      "description": "A node with neither next nor options ends the dialogue.",
+      "properties": {
+        "content": { "$ref": "#/$defs/Content" },
+        "set": { "$ref": "#/$defs/variableSets", "description": "Variables changed when the node starts." },
+        "next": { "$ref": "#/$defs/next" },
+        "options": {
+          "type": "object",
+          "minProperties": 1,
+          "propertyNames": { "$ref": "#/$defs/id" },
+          "additionalProperties": { "$ref": "#/$defs/Option" }
+        }
+      },
+      "not": { "required": ["next", "options"] }
+    },
+    "Option": {
+      "type": "object",
+      "required": ["content"],
+      "additionalProperties": false,
+      "properties": {
+        "content": {
+          "type": "object",
+          "required": ["text"],
+          "additionalProperties": false,
+          "properties": { "text": { "$ref": "#/$defs/text" } }
+        },
+        "requires": { "$ref": "#/$defs/variableConditions", "description": "Option is shown only when every condition is met." },
+        "set": { "$ref": "#/$defs/variableSets", "description": "Variables changed when the option is chosen." },
+        "next": { "$ref": "#/$defs/next" }
+      }
+    },
+    "Locale": {
+      "type": "object",
+      "required": ["language", "values"],
+      "additionalProperties": false,
+      "properties": {
+        "language": { "$ref": "#/$defs/localeId" },
+        "values": {
+          "type": "object",
+          "description": "Translation key (Kind.id.path.to.field) to translated text.",
+          "propertyNames": { "pattern": "^(Story|Character|Document|Dialogue)\\.[A-Za-z0-9_][A-Za-z0-9_-]*(\\.[A-Za-z0-9_][A-Za-z0-9_-]*)+$" },
+          "additionalProperties": { "type": "string" }
+        }
+      }
+    },
+    "I18nConfiguration": {
+      "type": "object",
+      "required": ["locales"],
+      "additionalProperties": false,
+      "properties": {
+        "source": { "$ref": "#/$defs/localeId", "description": "Locale the story files are written in." },
+        "locales": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "required": ["id"],
+            "additionalProperties": false,
+            "properties": {
+              "id": { "$ref": "#/$defs/localeId" },
+              "enforce": { "type": "boolean", "default": false }
+            }
+          }
+        }
+      }
+    },
+    "PluginsConfiguration": {
+      "type": "object",
+      "required": ["plugins"],
+      "additionalProperties": false,
+      "properties": {
+        "plugins": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^[a-z0-9-]+/v[0-9]+$" }
+        }
+      }
+    }
+  }
+}
