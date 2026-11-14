@@ -18,10 +18,10 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
-          go-version-file: cli/go.mod
-          cache-dependency-path: cli/go.sum
+          go-version-file: src/cli/go.mod
+          cache-dependency-path: src/cli/go.sum
       - name: Build osf
-        working-directory: cli
-        run: go build -o ../osf .
+        working-directory: src/cli
+        run: go build -o ../../osf ./cmd/osf
       - name: Validate the example project
         run: ./osf validate example/yaml
