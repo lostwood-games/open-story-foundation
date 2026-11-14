@@ -5,10 +5,6 @@ describes exactly the same things as the YAML format in the [Open Story spec](sp
 a Story, Characters, Documents, Variables, Dialogues and their translations. Files end in `.osf`; the `osf` command (`src/cli/`) reads, checks, formats,
 builds and plays them.
 
-> **Status.** The language is being moved into this repository step by step. Today
-> `osf` only validates YAML and JSON projects; the `.osf` parser and the `build`, `fmt`,
-> `import`, `convert`, `play` and `lsp` commands described below arrive in later changes.
-
 ```osf
 Dialogue 01_intro_scene {
   Node node_03 {
