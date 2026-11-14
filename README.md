@@ -1,6 +1,6 @@
 # Open Story Format (OSF)
 [![Go Build, Test and Lint](https://github.com/lostwood-games/open-story-foundation/actions/workflows/go.yml/badge.svg)](https://github.com/lostwood-games/open-story-foundation/actions/workflows/go.yml)
-[![Validate](https://github.com/lostwood-games/open-story-foundation/actions/workflows/validate.yml/badge.svg)](https://github.com/lostwood-games/open-story-foundation/actions/workflows/validate.yml)
+[![Validate YAML](https://github.com/lostwood-games/open-story-foundation/actions/workflows/validate.yml/badge.svg)](https://github.com/lostwood-games/open-story-foundation/actions/workflows/validate.yml)
 
 Open Story Format is a way to keep a game's story as code: dialogues, characters,
 documents, variables and translations live in plain text files that sit in git next to
