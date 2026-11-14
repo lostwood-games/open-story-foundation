@@ -25,6 +25,14 @@ func writeProject(t *testing.T, files map[string]string) string {
 	return dir
 }
 
+// osfProject is writeProject with a standard versions.osf added.
+func osfProject(t *testing.T, files map[string]string) string {
+	if _, ok := files["versions.osf"]; !ok {
+		files["versions.osf"] = `Versions { language = "1" story = "v1" dialogue = "v1" i18n = "v1" }`
+	}
+	return writeProject(t, files)
+}
+
 func TestYAMLExampleIsValid(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	if code := run([]string{"validate", yamlExample}, &stdout, &stderr); code != 0 {
@@ -87,10 +95,7 @@ Dialogue d { Node a { text: "x" } }`, "locales/Jpn/s.osf": `Locale Jpn { Charact
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if _, ok := tt.files["versions.osf"]; !ok {
-				tt.files["versions.osf"] = `Versions { language = "1" story = "v1" dialogue = "v1" i18n = "v1" }`
-			}
-			dir := writeProject(t, tt.files)
+			dir := osfProject(t, tt.files)
 			var stderr bytes.Buffer
 			code := run([]string{"validate", dir}, &bytes.Buffer{}, &stderr)
 			if code != 1 || !strings.Contains(stderr.String(), tt.want) {
