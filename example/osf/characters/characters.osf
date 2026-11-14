@@ -1,0 +1,9 @@
+Character protagonist {
+  name        = "You"
+  description = "The player character. Wakes up in the dark with no memory of how they got there."
+}
+
+Character stranger {
+  name        = "Stranger"
+  description = "A voice in the dark. Nobody knows who it belongs to yet."
+}

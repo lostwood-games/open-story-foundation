@@ -1,0 +1,36 @@
+Dialogue 01_intro_scene {
+  Node node_01 {
+    speaker: protagonist
+    title: "..."
+    text: "Where am I?"
+    next: node_02
+  }
+
+  Node node_02 {
+    text: "Total Darkness surrounds you."  // no speaker: narration
+    next: node_03
+  }
+
+  Node node_03 {
+    speaker: protagonist
+    text: """
+      What is it all about?
+      Am I dreaming?
+    """
+
+    Option node_03_option_01 {
+      text: "Yes, you are."
+      set: { is_dreaming: true }
+      next: node_04
+    }
+
+    Option node_03_option_02 {
+      text: "No. Fool"
+      next: Dialogue.02_shadows_speak
+    }
+  }
+
+  Node node_04 {
+    text: "Strange"
+  }
+}

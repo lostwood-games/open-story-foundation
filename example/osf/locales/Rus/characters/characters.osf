@@ -1,0 +1,11 @@
+Locale Rus {
+  Character protagonist {
+    name        = "Ты"
+    description = "Персонаж игрока. Просыпается во тьме и не помнит, как туда попал."
+  }
+
+  Character stranger {
+    name        = "Незнакомец"
+    description = "Голос во тьме. Никто пока не знает, чей он."
+  }
+}

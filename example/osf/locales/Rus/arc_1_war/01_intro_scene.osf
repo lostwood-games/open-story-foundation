@@ -1,0 +1,27 @@
+// Same shape as the source file, with only the text fields kept.
+Locale Rus {
+  Dialogue 01_intro_scene {
+    Node node_01 {
+      title: "..."
+      text: "Где я?"
+    }
+
+    Node node_02 {
+      text: "Тебя окружает полная тьма."
+    }
+
+    Node node_03 {
+      text: """
+        О чём всё это?
+        Я сплю?
+      """
+
+      Option node_03_option_01 { text: "Да, спишь." }
+      Option node_03_option_02 { text: "Нет. Глупец" }
+    }
+
+    Node node_04 {
+      text: "Странно"
+    }
+  }
+}

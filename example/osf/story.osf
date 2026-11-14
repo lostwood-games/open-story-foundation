@@ -1,0 +1,14 @@
+// The whole project's settings: one story block, one i18n block.
+
+Story LDOD {
+  name  = "Leviathan: The Last Day of The Decade"
+  start = Dialogue.01_intro_scene  // the dialogue the game starts with
+}
+
+I18n {
+  source = Eng                             // the language the story files are written in
+  Locale Rus "Russian" { enforce = true }  // missing translations are errors
+  Locale Jpn "Japanese"                    // missing translations fall back to Eng
+}
+
+Variable is_dreaming: Boolean = false

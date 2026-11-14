@@ -1,0 +1,12 @@
+Locale Rus {
+  Dialogue 02_shadows_speak {
+    Node node_01 {
+      text: "Привет"
+    }
+
+    Node node_02 {
+      title: "{{ Character.stranger }}"
+      text: "Ты не спишь. Больше нет."
+    }
+  }
+}
