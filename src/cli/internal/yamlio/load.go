@@ -3,7 +3,6 @@ package yamlio
 import (
 	"errors"
 	"io"
-	"io/fs"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -16,6 +15,7 @@ import (
 
 	"github.com/lostwood-games/open-story-foundation/src/cli/internal/diag"
 	"github.com/lostwood-games/open-story-foundation/src/cli/internal/osf"
+	"github.com/lostwood-games/open-story-foundation/src/cli/internal/source"
 )
 
 var (
@@ -55,11 +55,11 @@ func LoadDir(dir string) (*osf.Project, []diag.Diagnostic) {
 
 // FindFiles returns the .yaml and .json files under dir, sorted.
 func FindFiles(dir string) ([]string, error) {
-	yamls, err := findFiles(dir, ".yaml")
+	yamls, err := source.Files(dir, ".yaml")
 	if err != nil {
 		return nil, err
 	}
-	jsons, err := findFiles(dir, ".json")
+	jsons, err := source.Files(dir, ".json")
 	if err != nil {
 		return nil, err
 	}
@@ -648,24 +648,4 @@ func contains(list []string, s string) bool {
 		}
 	}
 	return false
-}
-
-// findFiles returns the files under dir with the given extension, sorted,
-// skipping hidden folders.
-func findFiles(dir, ext string) ([]string, error) {
-	var files []string
-	err := filepath.WalkDir(dir, func(path string, e fs.DirEntry, err error) error {
-		if err != nil {
-			return err
-		}
-		if e.IsDir() && path != dir && strings.HasPrefix(e.Name(), ".") {
-			return filepath.SkipDir
-		}
-		if !e.IsDir() && strings.EqualFold(filepath.Ext(path), ext) {
-			files = append(files, path)
-		}
-		return nil
-	})
-	sort.Strings(files)
-	return files, err
 }
