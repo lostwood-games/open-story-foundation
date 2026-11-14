@@ -1,0 +1,9 @@
+{
+  "apiVersion": "story/v1",
+  "kind": "Story",
+  "data": {
+    "id": "shop",
+    "name": "Shop",
+    "start": "Dialogue.counter"
+  }
+}

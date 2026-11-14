@@ -16,6 +16,7 @@ type command struct {
 }
 
 var commands = []command{
+	{"build", "Compile .osf files into OSF YAML or JSON resources", runBuild},
 	{"validate", "Check a project against the Open Story spec", runValidate},
 	{"version", "Print the osf version", runVersion},
 }

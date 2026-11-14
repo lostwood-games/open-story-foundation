@@ -1,0 +1,9 @@
+{
+  "apiVersion": "plugins/v1",
+  "kind": "Configuration",
+  "data": {
+    "plugins": [
+      "i18n/v1"
+    ]
+  }
+}

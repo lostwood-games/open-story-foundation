@@ -1,0 +1,28 @@
+name: Integration
+
+# Run osf on real projects and compare its output with the expected files.
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: osf build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: src/cli/go.mod
+          cache-dependency-path: src/cli/go.sum
+      - name: Build osf
+        working-directory: src/cli
+        run: go build -o ../../osf ./cmd/osf
+      - name: Build each test project and compare with the expected JSON
+        run: bash tests/build/run.sh ./osf

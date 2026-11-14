@@ -1,0 +1,15 @@
+{
+  "apiVersion": "dialogue/v1",
+  "kind": "Dialogue",
+  "data": {
+    "id": "street",
+    "startNode": "outside",
+    "nodes": {
+      "outside": {
+        "content": {
+          "text": "The street is empty."
+        }
+      }
+    }
+  }
+}
