@@ -1,0 +1,9 @@
+{
+  "apiVersion": "story/v1",
+  "kind": "Character",
+  "data": {
+    "id": "merchant",
+    "name": "Merchant",
+    "description": "Sells {{ Document.lantern }}."
+  }
+}

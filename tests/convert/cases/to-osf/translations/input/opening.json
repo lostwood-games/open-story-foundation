@@ -1,0 +1,23 @@
+{
+  "apiVersion": "dialogue/v1",
+  "kind": "Dialogue",
+  "data": {
+    "id": "opening",
+    "startNode": "first",
+    "nodes": {
+      "first": {
+        "content": {
+          "speaker": "Character.narrator",
+          "text": "Once upon a time."
+        },
+        "options": {
+          "go": {
+            "content": {
+              "text": "Continue"
+            }
+          }
+        }
+      }
+    }
+  }
+}

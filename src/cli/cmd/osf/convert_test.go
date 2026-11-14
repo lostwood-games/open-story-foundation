@@ -45,7 +45,7 @@ func resources(t *testing.T, files map[string][]byte) map[string]any {
 	return out
 }
 
-func TestBuildMatchesYAMLExample(t *testing.T) {
+func TestConvertMatchesYAMLExample(t *testing.T) {
 	p, diags := lang.LoadDir(osfExample)
 	if len(diags) > 0 {
 		t.Fatalf("load: %v", diags)
@@ -81,11 +81,11 @@ func TestBuildMatchesYAMLExample(t *testing.T) {
 	}
 }
 
-func TestBuildWritesAndReplaces(t *testing.T) {
+func TestConvertWritesAndReplaces(t *testing.T) {
 	dir := osfProject(t, map[string]string{"s.osf": baseStory + `Dialogue d { Node a { text: "x" } }`})
 	out := filepath.Join(dir, "out")
-	if code := run([]string{"build", "-out", out, dir}, &bytes.Buffer{}, &bytes.Buffer{}); code != 0 {
-		t.Fatalf("build exit %d", code)
+	if code := run([]string{"convert", "-out", out, dir}, &bytes.Buffer{}, &bytes.Buffer{}); code != 0 {
+		t.Fatalf("convert exit %d", code)
 	}
 	if _, err := os.Stat(filepath.Join(out, "d.json")); err != nil {
 		t.Fatal(err)
@@ -93,8 +93,8 @@ func TestBuildWritesAndReplaces(t *testing.T) {
 	// Rename the dialogue: the old file must go, other files must stay.
 	os.WriteFile(filepath.Join(dir, "s.osf"), []byte(strings.Replace(baseStory, "Dialogue.d", "Dialogue.e", 1)+`Dialogue e { Node a { text: "x" } }`), 0o644)
 	os.WriteFile(filepath.Join(out, "mine.txt"), []byte("keep"), 0o644)
-	if code := run([]string{"build", dir, "-out", out}, &bytes.Buffer{}, &bytes.Buffer{}); code != 0 {
-		t.Fatalf("rebuild exit %d", code)
+	if code := run([]string{"convert", dir, "-out", out}, &bytes.Buffer{}, &bytes.Buffer{}); code != 0 {
+		t.Fatalf("reconvert exit %d", code)
 	}
 	if _, err := os.Stat(filepath.Join(out, "d.json")); !os.IsNotExist(err) {
 		t.Error("stale d.json was not removed")
@@ -104,12 +104,12 @@ func TestBuildWritesAndReplaces(t *testing.T) {
 			t.Error(err)
 		}
 	}
-	// A folder osf build did not make is never written to.
+	// A folder osf convert did not make is never written to.
 	other := filepath.Join(dir, "other")
 	os.MkdirAll(other, 0o755)
 	os.WriteFile(filepath.Join(other, "x.txt"), nil, 0o644)
 	var stderr bytes.Buffer
-	if code := run([]string{"build", "-out", other, dir}, &bytes.Buffer{}, &stderr); code != 1 || !strings.Contains(stderr.String(), "was not made by osf build") {
+	if code := run([]string{"convert", "-out", other, dir}, &bytes.Buffer{}, &stderr); code != 1 || !strings.Contains(stderr.String(), "was not made by osf;") {
 		t.Errorf("exit %d: %s", code, stderr.String())
 	}
 }
@@ -131,8 +131,8 @@ Dialogue d { Node a { text: "At {{ Document.lighthouse }}" } }`
 	}
 
 	out := filepath.Join(t.TempDir(), "build")
-	if code := run([]string{"build", "-o", "yaml", "-out", out, dir}, &bytes.Buffer{}, &stderr); code != 0 {
-		t.Fatalf("build exit %d:\n%s", code, stderr.String())
+	if code := run([]string{"convert", "-o", "yaml", "-out", out, dir}, &bytes.Buffer{}, &stderr); code != 0 {
+		t.Fatalf("convert exit %d:\n%s", code, stderr.String())
 	}
 	built, err := os.ReadFile(filepath.Join(out, "documents", "lighthouse.yaml"))
 	if err != nil {
@@ -144,6 +144,94 @@ Dialogue d { Node a { text: "At {{ Document.lighthouse }}" } }`
 		}
 	}
 	if code := run([]string{"validate", out}, &bytes.Buffer{}, &stderr); code != 0 {
-		t.Fatalf("validate of the YAML build exit %d:\n%s", code, stderr.String())
+		t.Fatalf("validate of the YAML convert exit %d:\n%s", code, stderr.String())
 	}
+}
+
+func convert(t *testing.T, format, out, dir string) {
+	t.Helper()
+	var stderr bytes.Buffer
+	if code := run([]string{"convert", "-o", format, "-out", out, dir}, &bytes.Buffer{}, &stderr); code != 0 {
+		t.Fatalf("convert -o %s %s: exit %d:\n%s", format, dir, code, stderr.String())
+	}
+}
+
+func readFiles(t *testing.T, dir, ext string) map[string]string {
+	t.Helper()
+	paths, err := source.Files(dir, ext)
+	if err != nil {
+		t.Fatal(err)
+	}
+	out := map[string]string{}
+	for _, p := range paths {
+		rel, _ := filepath.Rel(dir, p)
+		src, _ := os.ReadFile(p)
+		out[filepath.ToSlash(rel)] = string(src)
+	}
+	return out
+}
+
+func sameFiles(t *testing.T, what string, got, want map[string]string) {
+	t.Helper()
+	for rel, w := range want {
+		g, ok := got[rel]
+		if !ok {
+			t.Errorf("%s: %s is missing", what, rel)
+		} else if g != w {
+			t.Errorf("%s: %s differs\n--- got\n%s--- want\n%s", what, rel, g, w)
+		}
+	}
+	for rel := range got {
+		if _, ok := want[rel]; !ok {
+			t.Errorf("%s: unexpected file %s", what, rel)
+		}
+	}
+}
+
+// TestRoundTripThroughYAML: .osf -> YAML -> .osf gives the source back, file
+// for file and byte for byte, comments included.
+func TestRoundTripThroughYAML(t *testing.T) {
+	tmp := t.TempDir()
+	yamlDir, osfDir := filepath.Join(tmp, "yaml"), filepath.Join(tmp, "osf")
+	convert(t, "yaml", yamlDir, osfExample)
+	convert(t, "osf", osfDir, yamlDir)
+	sameFiles(t, "osf -> yaml -> osf", readFiles(t, osfDir, ".osf"), readFiles(t, osfExample, ".osf"))
+}
+
+// TestRoundTripThroughJSON: JSON has no comments and does not say which .osf
+// file a resource came from, so the .osf written from it has the standard
+// layout. Converting that back gives the same JSON, and it is valid.
+func TestRoundTripThroughJSON(t *testing.T) {
+	tmp := t.TempDir()
+	json1, osfDir, json2 := filepath.Join(tmp, "json1"), filepath.Join(tmp, "osf"), filepath.Join(tmp, "json2")
+	convert(t, "json", json1, osfExample)
+	convert(t, "osf", osfDir, json1)
+	var stderr bytes.Buffer
+	if code := run([]string{"validate", osfDir}, &bytes.Buffer{}, &stderr); code != 0 {
+		t.Fatalf("the .osf written from JSON does not validate:\n%s", stderr.String())
+	}
+	convert(t, "json", json2, osfDir)
+	got, want := map[string]string{}, map[string]string{}
+	for _, m := range []struct {
+		dir string
+		out map[string]string
+	}{{json2, got}, {json1, want}} {
+		raw := map[string][]byte{}
+		for rel, src := range readFiles(t, m.dir, ".json") {
+			raw[rel] = []byte(src)
+		}
+		for k, v := range resources(t, raw) {
+			b, _ := yaml.Marshal(v)
+			m.out[k] = string(b)
+		}
+	}
+	sameFiles(t, "json -> osf -> json", got, want)
+}
+
+// TestConvertOSFToOSF: an .osf project converted to .osf keeps its files and
+// content, since the example is already in the standard formatting.
+func TestConvertOSFToOSF(t *testing.T) {
+	out := filepath.Join(t.TempDir(), "osf")
+	convert(t, "osf", out, osfExample)
+	sameFiles(t, "osf -> osf", readFiles(t, out, ".osf"), readFiles(t, osfExample, ".osf"))
 }

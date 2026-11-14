@@ -1,0 +1,4 @@
+Story shop {
+  name  = "Shop"
+  start = Dialogue.counter
+}

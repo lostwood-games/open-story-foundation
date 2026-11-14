@@ -1,0 +1,10 @@
+Story tale {
+  name  = "Tale"
+  start = Dialogue.opening
+}
+
+I18n {
+  source = Eng
+  Locale Rus "Russian" { enforce = true }
+  Locale Jpn "Japanese"
+}

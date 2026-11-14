@@ -1,0 +1,5 @@
+Dialogue street {
+  Node outside {
+    text: "The street is empty."
+  }
+}

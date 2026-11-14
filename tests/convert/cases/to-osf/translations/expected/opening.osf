@@ -1,0 +1,10 @@
+Dialogue opening {
+  Node first {
+    speaker: narrator
+    text: "Once upon a time."
+
+    Option go {
+      text: "Continue"
+    }
+  }
+}

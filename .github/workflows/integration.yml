@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   build:
-    name: osf build
+    name: osf convert
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -24,5 +24,5 @@ jobs:
       - name: Build osf
         working-directory: src/cli
         run: go build -o ../../osf ./cmd/osf
-      - name: Build each test project and compare with the expected JSON
-        run: bash tests/build/run.sh ./osf
+      - name: Convert each test project and compare with the expected files
+        run: bash tests/convert/run.sh ./osf

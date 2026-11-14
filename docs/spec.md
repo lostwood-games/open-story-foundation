@@ -14,8 +14,8 @@ resource file that `osf` loads without an error; `yaml fragment` marks part of o
 
 A project is a folder. Every `*.yaml` and `*.json` file in it is loaded recursively
 (folders whose name starts with `.` are skipped), and which file a resource lives in
-does not matter. JSON files have the same content as YAML ones; `osf build` writes JSON by
-default and YAML with `-o yaml`. Each file holds exactly one resource (OSF031 for an empty file, OSF032 for
+does not matter. JSON files have the same content as YAML ones; `osf convert` writes JSON
+by default and YAML with `-o yaml`. Each file holds exactly one resource (OSF031 for an empty file, OSF032 for
 several YAML documents):
 
 ```yaml fragment
@@ -369,6 +369,6 @@ version can add them without changing what v1 files mean.
 - **Generated ids** (UUIDs). Ids are the stable identity of nodes and translations; a
   rename is a deliberate change, and the language server's rename updates every
   reference and translation key with it.
-- **Engine export.** `osf build` writes these resources as JSON or YAML
+- **Engine export.** `osf convert` writes these resources as JSON or YAML
   (`-o yaml`); a game engine reads them directly. There is no engine-specific
   output format.
