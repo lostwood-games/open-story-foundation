@@ -7,6 +7,10 @@ documents, variables and translations live in plain text files that sit in git n
 the rest of the game. It is inspired by tools such as Terraform, Bicep and Kubernetes
 manifests, where every file is one resource with a kind and a version.
 
+OSF started as an internal tool at Lostwood, where we use it to build narrative-driven
+games. We decided to open-source it to grow a community around it, so that everyone can
+make better games.
+
 A project can be written in two equivalent forms.
 
 As YAML or JSON resources, one per file, which tools and game engines read:
