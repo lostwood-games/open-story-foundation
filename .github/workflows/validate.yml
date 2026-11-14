@@ -1,0 +1,27 @@
+name: Validate
+
+# Validate the example project against the Open Story schema and spec.
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: cli/go.mod
+          cache-dependency-path: cli/go.sum
+      - name: Build osf
+        working-directory: cli
+        run: go build -o ../osf .
+      - name: Validate the example project
+        run: ./osf validate example/yaml
