@@ -1,0 +1,46 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write # create the release
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: osf ${{ github.ref_name }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: src/cli/go.mod
+          cache-dependency-path: src/cli/go.sum
+      - name: Vet and test
+        working-directory: src/cli
+        run: go vet ./... && go test ./...
+      - name: Build the archives
+        run: bash scripts/dist.sh "$GITHUB_REF_NAME"
+      - name: Smoke test the Linux binary
+        run: |
+          mkdir smoke && tar -C smoke -xzf dist/osf_linux_amd64.tar.gz
+          test "$(smoke/osf version | head -n 1)" = "osf $GITHUB_REF_NAME"
+          smoke/osf validate example/osf
+          bash tests/convert/run.sh smoke/osf
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          prerelease=()
+          [[ "$GITHUB_REF_NAME" == *-* ]] && prerelease=(--prerelease)
+          gh release create "$GITHUB_REF_NAME" dist/* \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "osf $GITHUB_REF_NAME" \
+            --generate-notes \
+            --verify-tag \
+            "${prerelease[@]}"
