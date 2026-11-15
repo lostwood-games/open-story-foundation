@@ -1,0 +1,44 @@
+Versions {
+  language = "1"
+  story    = "v1"
+  dialogue = "v1"
+}
+
+Story inn {
+  name  = "Inn"
+  start = Dialogue.innkeeper
+}
+
+Dialogue innkeeper {
+  Node hub {
+    text: "Welcome, traveller. What do you want to know?"
+
+    Option rumours {
+      text: "Any rumours?"
+      next: rumours
+    }
+
+    Option room {
+      text: "Do you have a room?"
+      next: room
+    }
+
+    Option leave {
+      text: "Goodbye."
+    }
+  }
+
+  Node rumours {
+    text: "They say the cellar is haunted."
+    next: hub.options  // back to the questions, without the greeting
+  }
+
+  Node room {
+    text: "Two coins a night."
+
+    Option more {
+      text: "Let me ask something else."
+      next: hub.options
+    }
+  }
+}

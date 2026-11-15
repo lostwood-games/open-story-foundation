@@ -174,8 +174,8 @@ Rules:
 - `speaker` is `Character.<id>` (OSF021) of an existing Character (OSF112). `title`
   overrides the speaker's name where the line is shown; `title: null` is the same as no
   title.
-- `next` is a node id in the same dialogue (OSF113) or `Dialogue.<id>` (OSF114), or a
-  list of conditional branches (§2.5.2).
+- `next` is a node id in the same dialogue (OSF113), `<node>.options` (§2.5.4),
+  `Dialogue.<id>` (OSF114), or a list of conditional branches (§2.5.2).
 - A node has `next` or `options`, not both (OSF117). A node with neither ends the
   dialogue; so does an option without `next`. `options`, when present, holds at least
   one option.
@@ -257,6 +257,23 @@ requires:
   OSF126.
 - They are compared with `true` or `false` only, and belong in `requires`, never in
   `set` (OSF127).
+
+#### 2.5.4 Back to a node's options
+
+`next: <node>.options` offers the options of a node of the same dialogue again, without
+showing its line or applying its `set` again. It is how a question hub is written: each
+answer goes back to the questions, not to the greeting before them.
+
+```yaml fragment
+nodes:
+  rumours:
+    next: hub.options          # back to the questions of node hub
+    content:
+      text: They say the cellar is haunted.
+```
+
+The node must exist (OSF113) and have options (OSF128). `<node>.options` can be the
+target of any `next`, including a branch.
 
 ### 2.6 `plugins/v1 Configuration`
 
@@ -399,7 +416,8 @@ implement it (`src/cli/internal/play`).
    Character's `name`, else nothing (narration).
 3. A node with `next` goes on to it without stopping. When `next` is a list of branches
    (§2.5.2), the first branch whose `requires` are all met by the current values is
-   followed; when none is, the dialogue ends. `next: Dialogue.<id>` enters that
+   followed; when none is, the dialogue ends. `next: <node>.options` goes straight to
+   step 4 for that node: its line is not shown again and its `set` is not applied again. `next: Dialogue.<id>` enters that
    dialogue's `startNode`; variables keep their values across dialogues.
 4. A node with options stops and offers the options whose `requires` are all met by the
    current values and history (an option with no `requires` is always offered). Choosing

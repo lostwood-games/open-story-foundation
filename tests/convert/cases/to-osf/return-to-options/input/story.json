@@ -1,0 +1,9 @@
+{
+  "apiVersion": "story/v1",
+  "kind": "Story",
+  "data": {
+    "id": "inn",
+    "name": "Inn",
+    "start": "Dialogue.innkeeper"
+  }
+}

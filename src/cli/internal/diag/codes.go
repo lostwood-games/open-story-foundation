@@ -56,6 +56,7 @@ var (
 	BranchAfterFallback   = rule("branch-after-fallback")
 	UnknownOption         = rule("unknown-option")
 	BadHistoryCondition   = rule("bad-history-condition")
+	NoOptionsToReturn     = rule("no-options-to-return")
 
 	UnknownVariable     = rule("unknown-variable")
 	WrongValueType      = rule("wrong-value-type")

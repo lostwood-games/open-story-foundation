@@ -1,0 +1,53 @@
+{
+  "apiVersion": "dialogue/v1",
+  "kind": "Dialogue",
+  "data": {
+    "id": "innkeeper",
+    "startNode": "hub",
+    "nodes": {
+      "hub": {
+        "content": {
+          "text": "Welcome, traveller. What do you want to know?"
+        },
+        "options": {
+          "rumours": {
+            "next": "rumours",
+            "content": {
+              "text": "Any rumours?"
+            }
+          },
+          "room": {
+            "next": "room",
+            "content": {
+              "text": "Do you have a room?"
+            }
+          },
+          "leave": {
+            "content": {
+              "text": "Goodbye."
+            }
+          }
+        }
+      },
+      "rumours": {
+        "next": "hub.options",
+        "content": {
+          "text": "They say the cellar is haunted."
+        }
+      },
+      "room": {
+        "content": {
+          "text": "Two coins a night."
+        },
+        "options": {
+          "more": {
+            "next": "hub.options",
+            "content": {
+              "text": "Let me ask something else."
+            }
+          }
+        }
+      }
+    }
+  }
+}

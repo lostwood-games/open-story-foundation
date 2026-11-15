@@ -3,6 +3,12 @@
 Each release adds to the format without changing what earlier files mean: a project
 that `osf` 0.1.0 accepts is still valid and means the same thing.
 
+## 0.6.0
+
+- `next: hub.options` goes back to the options of node `hub` without showing its line
+  or applying its `set` again, for question hubs. The node must have options
+  (new rule OSF128).
+
 ## 0.5.0
 
 - `requires` can put several conditions on one variable, all of which must be met, as
