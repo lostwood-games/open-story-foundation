@@ -1,0 +1,25 @@
+Versions {
+  language = "1"
+  story    = "v1"
+  dialogue = "v1"
+}
+
+Story vault {
+  name  = "Vault"
+  start = Dialogue.door
+}
+
+Variable gold: UnsignedNumber = 5 { description = "Coins the player carries." }  // spent at the door
+Variable opened: Boolean = false
+
+Dialogue door {
+  Node ask {
+    text: "Pay 2 gold to open the vault?"
+
+    Option pay {
+      text: "Pay."
+      requires: { gold >= 2 }
+      set: { gold -= 2, opened: true }
+    }
+  }
+}

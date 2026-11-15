@@ -161,10 +161,12 @@ Document old_lighthouse {
 
 Variable is_dreaming: Boolean = false  // Boolean | Number | UnsignedNumber
 Variable trust: Number = -1
-Variable gold: UnsignedNumber = 0
+Variable gold: UnsignedNumber = 0 { description = "Coins the player carries." }
 ```
 
-A `Variable` is one line: id, type and default value.
+A `Variable` is one line: id, type and default value, optionally followed by
+`{ description = "..." }`, a note for writers and programmers that players never see and
+that is not translated.
 
 | Type | Holds |
 |------|-------|
@@ -400,7 +402,7 @@ story       = "Story" id "{" { ("name" | "description") "=" string | "start" "="
 i18n        = "I18n" "{" { "source" "=" id | "Locale" id string [ "{" "enforce" "=" bool "}" ] } "}" ;
 character   = "Character" id "{" { ("name" | "description") "=" string } "}" ;
 document    = "Document" id "{" { "name" "=" string } "}" ;
-variable    = "Variable" id ":" ("Boolean" | "Number" | "UnsignedNumber") "=" value ;
+variable    = "Variable" id ":" ("Boolean" | "Number" | "UnsignedNumber") "=" value [ "{" "description" "=" string "}" ] ;
 dialogue    = "Dialogue" id "{" { "name" "=" string | "start" id | node } "}" ;
 node        = "Node" id "{" { text | "speaker" ":" id | next | "set" ":" sets | option } "}" ;
 option      = "Option" id "{" { text | next | "requires" ":" conditions | "set" ":" sets } "}" ;
@@ -451,7 +453,8 @@ byte. The example projects use it.
 - `Story`: `name`, `description`, `start`. `Character`: `name`, `description`. `Document`: `name`.
   `I18n`: `source`, then one `Locale` line per language, with `{ enforce = true }` only
   when it is true.
-- `Variable id: Type = value` on one line.
+- `Variable id: Type = value` on one line, followed by `{ description = "..." }` when
+  it has a description.
 - `Dialogue`: `name`, then `start` only when the start node is not the first node, then
   `Node` blocks separated by one blank line. No blank line after an opening brace; a
   blank line between the field lines and the first nested block.

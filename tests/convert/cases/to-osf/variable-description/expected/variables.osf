@@ -1,0 +1,2 @@
+Variable gold: UnsignedNumber = 5 { description = "Coins the player carries." }
+Variable opened: Boolean = false

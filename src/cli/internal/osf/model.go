@@ -247,15 +247,18 @@ type Document struct {
 	Comments Comments
 }
 
+// Variable is story state. Description is a note for writers and
+// programmers; it is not shown to players and is not translated.
 type Variable struct {
-	ID       string
-	Type     VarType
-	Default  Value
-	Pos      diag.Pos
-	End      diag.Pos
-	IDPos    diag.Pos
-	File     string
-	Comments Comments
+	ID          string
+	Type        VarType
+	Default     Value
+	Description *Str
+	Pos         diag.Pos
+	End         diag.Pos
+	IDPos       diag.Pos
+	File        string
+	Comments    Comments
 }
 
 type Dialogue struct {

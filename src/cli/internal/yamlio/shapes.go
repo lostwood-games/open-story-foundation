@@ -12,7 +12,7 @@ var shapes = map[string]shape{
 	"Story":                {[]string{"id", "name", "description", "start"}, []string{"id"}},
 	"Character":            {[]string{"id", "name", "description"}, []string{"id"}},
 	"Document":             {[]string{"id", "name"}, []string{"id"}},
-	"Variable":             {[]string{"id", "type", "default"}, []string{"id", "type", "default"}},
+	"Variable":             {[]string{"id", "type", "default", "description"}, []string{"id", "type", "default"}},
 	"Dialogue":             {[]string{"id", "name", "startNode", "nodes"}, []string{"id", "startNode", "nodes"}},
 	"Node":                 {[]string{"content", "set", "next", "options"}, []string{"content"}},
 	"Content":              {[]string{"speaker", "title", "text"}, nil},

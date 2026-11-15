@@ -145,6 +145,7 @@ func Resources(p *osf.Project) ([]Resource, error) {
 		dflt := value(v.Default)
 		dflt.LineComment = lineComment(v.Comments.Trail)
 		data := mapping("id", str(v.ID), "type", str(v.Type.String()), "default", dflt)
+		addText(data, "description", v.Description)
 		r.add(path.Join(path.Dir(v.File), "variables", v.ID), v.File, r.api("story"), "Variable", data, osf.Comments{Head: v.Comments.Head})
 	}
 	for _, d := range p.Dialogues {

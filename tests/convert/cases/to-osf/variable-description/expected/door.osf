@@ -1,0 +1,11 @@
+Dialogue door {
+  Node ask {
+    text: "Pay 2 gold to open the vault?"
+
+    Option pay {
+      text: "Pay."
+      requires: { gold >= 2 }
+      set: { gold -= 2, opened: true }
+    }
+  }
+}
