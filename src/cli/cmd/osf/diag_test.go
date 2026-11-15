@@ -162,6 +162,9 @@ var diagCases = []diagCase{
 	{name: "unexpected-token-set-played", files: story("\nDialogue intro {\n  Node greet { text: \"Hi\" set: { greet.played: true } }\n}\n"), want: "played and selected conditions belong in requires"},
 	{name: "unknown-node-played", files: story("\nDialogue intro {\n  Node greet { text: \"Hi\" Option go { text: \"Go\" requires: { gret.played: true } } }\n}\n"), want: `node "gret" does not exist in Dialogue intro`, hint: "greet"},
 	{name: "unknown-dialogue-played", files: story("\nDialogue intro {\n  Node greet { text: \"Hi\" Option go { text: \"Go\" requires: { Dialogue.outro.greet.played: true } } }\n}\n"), want: "Dialogue.outro does not exist", hint: "Dialogue.intro"},
+	{name: "duplicate-field-requires-op", files: story("Variable gold: Number = 3\n\nDialogue intro {\n  Node greet { text: \"Hi\" Option go { text: \"Go\" requires: { gold >= 3, gold >= 5 } } }\n}\n"), want: "gold >= is already required on line"},
+	{name: "duplicate-field-requires-equal", files: story("\nDialogue intro {\n  Node greet { text: \"Hi\" Option go { text: \"Go\" requires: { brave: true, brave: false } } }\n}\n"), want: "brave is already required on line"},
+	{name: "duplicate-field-requires-yaml", files: yamlProject(map[string]string{"gold.yaml": "apiVersion: story/v1\nkind: Variable\ndata:\n  id: gold\n  type: number\n  default: 0\n", "extra.yaml": "apiVersion: dialogue/v1\nkind: Dialogue\ndata:\n  id: extra\n  startNode: greet\n  nodes:\n    greet:\n      content: { text: Hi }\n      options:\n        go:\n          content: { text: Go }\n          requires: { gold: [{ operator: \">=\", value: 1 }, { operator: \">=\", value: 2 }] }\n"}), want: "gold >= is already required"},
 	{name: "duplicate-plugin", files: yamlProject(map[string]string{"plugins/plugins.yaml": "apiVersion: plugins/v1\nkind: Configuration\ndata:\n  plugins: [i18n/v1, i18n/v1]\n"}), want: "plugin i18n/v1 is listed twice"},
 
 	// Variables and values.

@@ -207,6 +207,15 @@ requires:
   and setting it to a negative value is OSF201. The result of `add` and `subtract` stays
   within the 32-bit range.
 - A variable appears at most once in one `set` or `requires` mapping, since it is the key.
+  In `requires` it can take a list of conditions instead, all of which must be met; the
+  same operator twice in one list is OSF014:
+
+```yaml fragment
+requires:
+  gold:                                   # 3 to 10 gold
+    - { operator: ">=", value: 3 }
+    - { operator: "<=", value: 10 }
+```
 
 #### 2.5.2 Conditional next
 

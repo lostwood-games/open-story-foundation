@@ -3,6 +3,12 @@
 Each release adds to the format without changing what earlier files mean: a project
 that `osf` 0.1.0 accepts is still valid and means the same thing.
 
+## 0.5.0
+
+- `requires` can put several conditions on one variable, all of which must be met, as
+  `gold >= 3, gold <= 10`. In YAML and JSON the variable takes a list of conditions.
+  Repeating the same comparison is still OSF014.
+
 ## 0.4.0
 
 - `requires` can check the play history: `node_02.played: true` once a node was entered,

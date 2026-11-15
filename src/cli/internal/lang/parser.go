@@ -404,7 +404,6 @@ func (p *parser) valueMap(field Token) []osf.Assign {
 		}
 		p.attemptEntry(base, func() {
 			name := p.entryName(field)
-			seen.once(p, Token{Text: name.Value, Pos: name.Pos})
 			var op osf.Op
 			if t := p.peek(); t.Kind == Op {
 				p.next()
@@ -417,6 +416,18 @@ func (p *parser) valueMap(field Token) []osf.Assign {
 				}
 			} else {
 				p.expect(Colon, "after "+name.Value)
+			}
+			// set names a variable once; requires may compare one several
+			// times, as in gold >= 3, gold <= 10, but not twice the same way.
+			if key := name.Value; field.Text != "requires" {
+				seen.once(p, Token{Text: key, Pos: name.Pos})
+			} else if prev, ok := seen[key+" "+string(op)]; ok {
+				if op == osf.OpEqual {
+					p.fail(diag.DuplicateField, Token{Text: key, Pos: name.Pos, End: name.End}, "%s is already required on line %d", key, prev.Line)
+				}
+				p.fail(diag.DuplicateField, Token{Text: key, Pos: name.Pos, End: name.End}, "%s %s is already required on line %d", key, op, prev.Line)
+			} else {
+				seen[key+" "+string(op)] = name.Pos
 			}
 			out = append(out, osf.Assign{Name: name.Value, Op: op, Value: p.value(name.Value), Pos: name.Pos, End: name.End})
 		})

@@ -1,6 +1,7 @@
 package yamlio
 
 import (
+	"cmp"
 	"errors"
 	"io"
 	"os"
@@ -401,7 +402,29 @@ func (l *loader) values(n *yaml.Node, what string) ([]osf.Assign, osf.Comments) 
 	var out []osf.Assign
 	keys, vals := ordered(n)
 	for i, k := range keys {
-		if op, v, ok := l.assign(vals[i], what+"."+k.Value, opKey, ops); ok {
+		items := []*yaml.Node{vals[i]}
+		if vals[i].Kind == yaml.SequenceNode && opKey == "operator" {
+			// Several conditions on one variable, as gold >= 3 and gold <= 10.
+			items = vals[i].Content
+			if len(items) == 0 {
+				l.errf(diag.WrongType, vals[i], "%s.%s must be a value, a condition or a non-empty list of conditions", what, k.Value)
+			}
+		}
+		seen := map[osf.Op]bool{}
+		for j, item := range items {
+			iw := what + "." + k.Value
+			if len(items) > 1 {
+				iw += "[" + strconv.Itoa(j) + "]"
+			}
+			op, v, ok := l.assign(item, iw, opKey, ops)
+			if !ok {
+				continue
+			}
+			if seen[op] {
+				l.errf(diag.DuplicateField, item, "%s: %s %s is already required", what, k.Value, cmp.Or(string(op), ":"))
+				continue
+			}
+			seen[op] = true
 			out = append(out, osf.Assign{Name: k.Value, Op: op, Value: v, Pos: l.pos(k), End: l.end(k)})
 		}
 	}

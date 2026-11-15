@@ -90,7 +90,14 @@
       "type": "object",
       "propertyNames": { "pattern": "^([A-Za-z0-9_][A-Za-z0-9_-]*|(Dialogue\\.[A-Za-z0-9_][A-Za-z0-9_-]*\\.)?[A-Za-z0-9_][A-Za-z0-9_-]*\\.(played|[A-Za-z0-9_][A-Za-z0-9_-]*\\.selected))$" },
       "patternProperties": { "\\.(played|selected)$": { "type": "boolean" } },
-      "additionalProperties": { "if": { "type": "object" }, "then": { "$ref": "#/$defs/Condition" }, "else": { "$ref": "#/$defs/value" } }
+      "additionalProperties": {
+        "if": { "type": "object" }, "then": { "$ref": "#/$defs/Condition" },
+        "else": {
+          "if": { "type": "array" },
+          "then": { "type": "array", "minItems": 1, "items": { "if": { "type": "object" }, "then": { "$ref": "#/$defs/Condition" }, "else": { "$ref": "#/$defs/value" } }, "description": "Several conditions on one variable, all of which must be met." },
+          "else": { "$ref": "#/$defs/value" }
+        }
+      }
     },
     "Condition": {
       "type": "object",

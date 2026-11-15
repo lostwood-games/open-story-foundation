@@ -1,0 +1,4 @@
+Story market {
+  name  = "Market"
+  start = Dialogue.stall
+}

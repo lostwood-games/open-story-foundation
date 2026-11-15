@@ -254,8 +254,10 @@ Option node_03_option_01 {
 | `set`      | Value map of changes. | `set` |
 
 Option ids are unique in their node (OSF119). Every name in `set` and `requires` is a
-Variable (OSF200), named at most once in a map (OSF014), and every value has its type
-(OSF201).
+Variable (OSF200) and every value has its type (OSF201). A variable is named at most once
+in `set` (OSF014); `requires` may compare it several times, as in
+`{ gold >= 3, gold <= 10 }`, but not twice with the same operator (OSF014). In YAML that
+is a list of conditions (spec §2.5.1).
 
 A `Boolean` is set with `name: true` and required with `name: false`. Numbers can do more:
 

@@ -1,0 +1,45 @@
+{
+  "apiVersion": "dialogue/v1",
+  "kind": "Dialogue",
+  "data": {
+    "id": "stall",
+    "startNode": "offer",
+    "nodes": {
+      "offer": {
+        "content": {
+          "text": "Cheap trinkets, for those who are not rich."
+        },
+        "options": {
+          "buy": {
+            "requires": {
+              "gold": [
+                {
+                  "operator": ">=",
+                  "value": 3
+                },
+                {
+                  "operator": "<=",
+                  "value": 10
+                }
+              ]
+            },
+            "set": {
+              "gold": {
+                "operation": "subtract",
+                "value": 3
+              }
+            },
+            "content": {
+              "text": "I'll take one."
+            }
+          },
+          "leave": {
+            "content": {
+              "text": "No, thanks."
+            }
+          }
+        }
+      }
+    }
+  }
+}

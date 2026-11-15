@@ -314,12 +314,23 @@ func addValues(m *yaml.Node, key string, values []osf.Assign, c osf.Comments) {
 	if key == "requires" {
 		opKey = "operator"
 	}
+	at := map[string]int{} // name -> index of its value in vm.Content
 	for _, a := range values {
 		v := value(a.Value)
 		if a.Op != "" {
 			v = mapping(opKey, str(string(a.Op)), "value", v)
 		}
-		vm.Content = append(vm.Content, str(a.Name), v)
+		i, seen := at[a.Name]
+		switch {
+		case !seen:
+			at[a.Name] = len(vm.Content) + 1
+			vm.Content = append(vm.Content, str(a.Name), v)
+		case vm.Content[i].Kind == yaml.SequenceNode:
+			vm.Content[i].Content = append(vm.Content[i].Content, v)
+		default:
+			// A second condition on the same variable: a list of conditions.
+			vm.Content[i] = &yaml.Node{Kind: yaml.SequenceNode, Content: []*yaml.Node{vm.Content[i], v}}
+		}
 	}
 	k := str(key)
 	comment(k, vm, c)

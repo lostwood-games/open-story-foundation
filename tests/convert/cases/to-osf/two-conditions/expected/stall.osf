@@ -1,0 +1,15 @@
+Dialogue stall {
+  Node offer {
+    text: "Cheap trinkets, for those who are not rich."
+
+    Option buy {
+      text: "I'll take one."
+      requires: { gold >= 3, gold <= 10 }
+      set: { gold -= 3 }
+    }
+
+    Option leave {
+      text: "No, thanks."
+    }
+  }
+}
