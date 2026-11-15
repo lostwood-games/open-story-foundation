@@ -39,6 +39,44 @@ Variable is_dreaming: Boolean = false
 ```
 
 
+## Install
+
+On macOS and Linux:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/lostwood-games/open-story-foundation/main/install.sh | sh
+```
+
+On Windows, in PowerShell:
+
+```powershell
+irm https://raw.githubusercontent.com/lostwood-games/open-story-foundation/main/install.ps1 | iex
+```
+
+Both download the latest release for your system, check its checksum and put `osf` on
+your path. You can also download an archive from the
+[releases page](https://github.com/lostwood-games/open-story-foundation/releases), or
+build from source with Go 1.23 or newer:
+
+```sh
+cd src/cli && go build -o ../../osf ./cmd/osf
+```
+
+## Usage
+
+```sh
+osf validate             # check the project in the current folder
+osf convert -o osf       # write a JSON or YAML project as .osf files for writers
+osf convert              # write a project as JSON for a game to load
+osf fmt                  # put .osf files in the standard formatting
+```
+
+A project is a folder of `.osf` files, or of JSON or YAML resources. Every command takes
+a folder as its last argument and prints its options with `-help`. The format is defined
+in [`docs/spec.md`](docs/spec.md), the `.osf` language in
+[`docs/language.md`](docs/language.md), and every error code in
+[`docs/diagnostics.md`](docs/diagnostics.md).
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md).
