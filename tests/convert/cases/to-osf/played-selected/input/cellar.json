@@ -1,0 +1,15 @@
+{
+  "apiVersion": "dialogue/v1",
+  "kind": "Dialogue",
+  "data": {
+    "id": "cellar",
+    "startNode": "door",
+    "nodes": {
+      "door": {
+        "content": {
+          "text": "The door is locked."
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,31 @@
+Dialogue innkeeper {
+  Node hub {
+    text: "What do you want to know?"
+
+    Option rumours {
+      text: "Any rumours?"
+      next: rumours
+    }
+
+    Option room {
+      text: "And about that room?"
+      requires: { rumours.played: true }
+      next: room
+    }
+
+    Option leave {
+      text: "Goodbye."
+      requires: { hub.room.selected: false, Dialogue.cellar.door.played: false }
+    }
+  }
+
+  Node rumours {
+    text: "They say the cellar is haunted."
+    next: hub
+  }
+
+  Node room {
+    text: "Two coins a night."
+    next: hub
+  }
+}

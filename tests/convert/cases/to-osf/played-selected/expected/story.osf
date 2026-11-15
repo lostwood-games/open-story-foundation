@@ -1,0 +1,4 @@
+Story inn {
+  name  = "Inn"
+  start = Dialogue.innkeeper
+}

@@ -1,0 +1,5 @@
+Dialogue cellar {
+  Node door {
+    text: "The door is locked."
+  }
+}

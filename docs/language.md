@@ -274,6 +274,19 @@ Option buy_bed {
 | `name: value` | `requires` | The variable equals the value. | the value |
 | `name != n`, `name < n`, `name <= n`, `name > n`, `name >= n` | `requires` | The comparison is true. | `{ operator: ">=", value: n }` |
 
+A `requires` map can also check what was played: `rumours.played: true` once the node
+`rumours` was entered, `hub.room.selected: false` while option `room` of node `hub` was
+never chosen. Put `Dialogue.<id>.` in front for a node of another dialogue, as in
+`Dialogue.cellar.door.played: false` (spec §2.5.3).
+
+```osf fragment
+Option room {
+  text: "And about that room?"
+  requires: { rumours.played: true }  // only after hearing the rumours
+  next: room
+}
+```
+
 Operations and comparisons are for `Number` and `UnsignedNumber` only (OSF205 on a
 `Boolean`). An `UnsignedNumber` never goes below 0: subtracting more than it holds leaves
 0, and setting it to a negative value is OSF201. A result stays within 32 bits.
@@ -428,7 +441,8 @@ option      = "Option" id "{" { text | next | "requires" ":" conditions | "set" 
 text        = ("text" | "title") ":" string ;          (title on nodes only)
 next        = "next" ":" ( id | "Dialogue" "." id ) [ "requires" conditions ] ;
 sets        = "{" { id ( ":" value | ("+=" | "-=") number ) [ "," ] } "}" ;
-conditions  = "{" { id ( ":" value | ("!=" | "<" | "<=" | ">" | ">=") number ) [ "," ] } "}" ;
+conditions  = "{" { ( id ( ":" value | ("!=" | "<" | "<=" | ">" | ">=") number ) | played ":" bool ) [ "," ] } "}" ;
+played      = [ "Dialogue" "." id "." ] id "." ( "played" | id "." "selected" ) ;
 locale      = "Locale" id "{" { story | character | document | dialogue } "}" ;   (text fields only)
 value       = number | bool ;
 bool        = "true" | "false" ;
