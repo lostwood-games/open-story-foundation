@@ -13,7 +13,7 @@ type JSONRange struct {
 	End   JSONPos `json:"end"`
 }
 
-// JSONDiag is the shape of one diagnostic in `osf validate -format json`.
+// JSONDiag is the shape of one diagnostic in `osf validate -o json`.
 type JSONDiag struct {
 	File       string    `json:"file"`
 	Range      JSONRange `json:"range"`
@@ -51,7 +51,7 @@ func Report(diags []Diagnostic) JSONReport {
 	return r
 }
 
-// Marshal renders diagnostics as the JSON `osf validate -format json`
+// Marshal renders diagnostics as the JSON `osf validate -o json`
 // prints, with a trailing newline.
 func Marshal(diags []Diagnostic) ([]byte, error) {
 	b, err := json.Marshal(Report(diags))

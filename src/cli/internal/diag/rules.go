@@ -145,7 +145,7 @@ story.osf:12:14: error: OSF112 Node node_01: speaker: unknown character "strnger
 ` + "```" + `
 
 that is ` + "`file:line:col: severity: code message`" + `, with a suggestion appended when a
-reference is close to an existing id. ` + "`osf validate -format json`" + ` prints the same
+reference is close to an existing id. ` + "`osf validate -o json`" + ` prints the same
 diagnostics as JSON with start and end positions.
 
 Code ranges: 001-099 lexing and parsing, 100-199 structure and references, 200-299

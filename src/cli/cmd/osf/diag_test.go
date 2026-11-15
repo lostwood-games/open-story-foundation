@@ -219,7 +219,7 @@ func writeCase(t *testing.T, dir string, c diagCase) {
 
 func validateJSON(t *testing.T, dir string) (diag.JSONReport, int) {
 	var stdout, stderr bytes.Buffer
-	code := run([]string{"validate", "-format", "json", dir}, &stdout, &stderr)
+	code := run([]string{"validate", "-o", "json", dir}, &stdout, &stderr)
 	var report diag.JSONReport
 	if err := json.Unmarshal(stdout.Bytes(), &report); err != nil {
 		t.Fatalf("bad JSON (%v):\n%s%s", err, stdout.String(), stderr.String())
