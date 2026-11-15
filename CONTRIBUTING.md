@@ -15,6 +15,20 @@ describe the story or game situation that the current format cannot express.
 - For anything larger than a fix, open an issue first so the approach can be agreed
   before the work is done.
 
+## Releasing
+
+Maintainers release by pushing a tag from `main`:
+
+```sh
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+The `Release` workflow tests the code, builds `osf` for Linux, macOS and Windows with
+`scripts/dist.sh`, and publishes the archives and `checksums.txt` as a GitHub release
+with generated notes. A tag with a `-`, such as `v0.2.0-rc.1`, is published as a
+pre-release, so the install scripts keep installing the last full release.
+
 ## License
 
 By contributing you agree that your contribution is licensed under the
