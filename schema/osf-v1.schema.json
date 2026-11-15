@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://open-story.dev/schema/osf-v1.schema.json",
+  "$id": "https://openstoryfoundation.com/schema/osf-v1.schema.json",
   "title": "Open Story (OSF) v1 resource",
   "description": "One OSF resource file. See docs/spec.md.",
   "type": "object",
