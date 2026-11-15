@@ -174,7 +174,8 @@ Rules:
 - `speaker` is `Character.<id>` (OSF021) of an existing Character (OSF112). `title`
   overrides the speaker's name where the line is shown; `title: null` is the same as no
   title.
-- `next` is a node id in the same dialogue (OSF113) or `Dialogue.<id>` (OSF114).
+- `next` is a node id in the same dialogue (OSF113) or `Dialogue.<id>` (OSF114), or a
+  list of conditional branches (§2.5.2).
 - A node has `next` or `options`, not both (OSF117). A node with neither ends the
   dialogue; so does an option without `next`. `options`, when present, holds at least
   one option.
@@ -205,6 +206,28 @@ requires:
   and setting it to a negative value is OSF201. The result of `add` and `subtract` stays
   within the 32-bit range.
 - A variable appears at most once in one `set` or `requires` mapping, since it is the key.
+
+#### 2.5.2 Conditional next
+
+`next` on a node or an option can instead be a list of branches. Each branch has a target
+`to` and the same `requires` an option has. The branches are tried in order and the first
+whose conditions are all met is followed. The last branch may leave out `requires`: it is
+taken when no other matches. When no branch matches and there is no such fallback, the
+dialogue ends there, as it does for a node without `next`.
+
+```yaml fragment
+next:
+  - to: rich                              # tried first
+    requires: { gold: { operator: ">=", value: 10 } }
+  - to: friend
+    requires: { trusted: true }
+  - to: away                              # when neither matches
+```
+
+- `to` is required and is a node id or `Dialogue.<id>`, as for a plain `next`.
+- Only the last branch may leave out `requires`; an earlier one would hide the branches
+  after it (OSF125).
+- A plain `next: away` is the same as a list holding only `- to: away`.
 
 ### 2.6 `plugins/v1 Configuration`
 
@@ -344,7 +367,9 @@ implement it (`src/cli/internal/play`).
 2. Play enters the dialogue's `startNode`. Entering a node applies its `set` (in the order written), then shows
    its line: the text, and as the speaker its `title` if it has one, else the speaker
    Character's `name`, else nothing (narration).
-3. A node with `next` goes on to it without stopping. `next: Dialogue.<id>` enters that
+3. A node with `next` goes on to it without stopping. When `next` is a list of branches
+   (§2.5.2), the first branch whose `requires` are all met by the current values is
+   followed; when none is, the dialogue ends. `next: Dialogue.<id>` enters that
    dialogue's `startNode`; variables keep their values across dialogues.
 4. A node with options stops and offers the options whose `requires` are all met by the
    current values (an option with no `requires` is always offered). Choosing one applies

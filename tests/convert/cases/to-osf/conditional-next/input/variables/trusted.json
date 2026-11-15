@@ -1,0 +1,9 @@
+{
+  "apiVersion": "story/v1",
+  "kind": "Variable",
+  "data": {
+    "id": "trusted",
+    "type": "boolean",
+    "default": false
+  }
+}

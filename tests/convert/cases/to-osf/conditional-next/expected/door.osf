@@ -1,0 +1,26 @@
+Dialogue door {
+  Node guard {
+    text: "The guard looks you over."
+    next: rich requires { gold >= 10 }
+    next: friend requires { trusted: true }
+    next: away
+  }
+
+  Node rich {
+    text: "Welcome, sir."
+  }
+
+  Node friend {
+    text: "Go in, friend."
+  }
+
+  Node away {
+    text: "Move along."
+
+    Option bribe {
+      text: "Here, take this."
+      set: { gold -= 2 }
+      next: friend requires { gold >= 2 }
+    }
+  }
+}

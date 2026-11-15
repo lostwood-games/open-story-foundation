@@ -589,8 +589,8 @@ func (l *loader) dialogue(data *yaml.Node, pos, end diag.Pos, block func(map[str
 	if s := l.text(d["startNode"], "startNode"); s != nil {
 		dlg.StartNode = s
 	}
-	next := func(n *yaml.Node) *osf.Str {
-		return l.matching(n, "next", nextPattern, "must be a node id or Dialogue.<id>")
+	next := func(n *yaml.Node, where string) (*osf.Str, []*osf.Branch) {
+		return l.nexts(n, where+".next")
 	}
 	if nodes := d["nodes"]; nodes != nil {
 		if nodes.Kind != yaml.MappingNode {
@@ -604,7 +604,8 @@ func (l *loader) dialogue(data *yaml.Node, pos, end diag.Pos, block func(map[str
 				if nf == nil {
 					continue
 				}
-				n := &osf.Node{ID: k.Value, Pos: l.pos(k), End: l.end(k), IDPos: l.idPos(k), Next: next(nf["next"]), Comments: l.comments(vals[i])}
+				n := &osf.Node{ID: k.Value, Pos: l.pos(k), End: l.end(k), IDPos: l.idPos(k), Comments: l.comments(vals[i])}
+				n.Next, n.Branches = next(nf["next"], where)
 				n.Set, n.SetComments = l.values(nf["set"], where+".set")
 				if c := nf["content"]; c != nil {
 					cf := l.fields(c, where+".content", shapes["Content"])
@@ -624,7 +625,8 @@ func (l *loader) dialogue(data *yaml.Node, pos, end diag.Pos, block func(map[str
 							if of == nil {
 								continue
 							}
-							o := &osf.Option{ID: okey.Value, Pos: l.pos(okey), End: l.end(okey), IDPos: l.idPos(okey), Next: next(of["next"]), Comments: l.comments(ovals[j])}
+							o := &osf.Option{ID: okey.Value, Pos: l.pos(okey), End: l.end(okey), IDPos: l.idPos(okey), Comments: l.comments(ovals[j])}
+							o.Next, o.Branches = next(of["next"], ow)
 							o.Requires, o.RequiresComments = l.values(of["requires"], ow+".requires")
 							o.Set, o.SetComments = l.values(of["set"], ow+".set")
 							if c := of["content"]; c != nil {
@@ -640,6 +642,55 @@ func (l *loader) dialogue(data *yaml.Node, pos, end diag.Pos, block func(map[str
 		}
 	}
 	l.p.Dialogues = append(l.p.Dialogues, dlg)
+}
+
+// nexts reads `next`: a node id or Dialogue.<id>, or a list of branches
+// `{ to, requires }` tried in order, of which only the last may leave out
+// requires. That last one is returned as the plain next.
+func (l *loader) nexts(n *yaml.Node, what string) (*osf.Str, []*osf.Branch) {
+	target := func(n *yaml.Node, what string) *osf.Str {
+		return l.matching(n, what, nextPattern, "must be a node id or Dialogue.<id>")
+	}
+	if n == nil {
+		return nil, nil
+	}
+	if n.Kind != yaml.SequenceNode {
+		return target(n, "next"), nil
+	}
+	if len(n.Content) == 0 {
+		l.errf(diag.WrongType, n, "%s must be a node id, Dialogue.<id> or a non-empty list of { to, requires }", what)
+		return nil, nil
+	}
+	var next *osf.Str
+	var branches []*osf.Branch
+	for i, item := range n.Content {
+		iw := what + "[" + strconv.Itoa(i) + "]"
+		f := l.fields(item, iw, shapes["Branch"])
+		if f == nil || f["to"] == nil {
+			continue
+		}
+		head := item.HeadComment
+		if len(item.Content) > 0 && item.Content[0].HeadComment != "" {
+			head = item.Content[0].HeadComment
+		}
+		c := osf.Comments{Head: osfComment(head), Trail: osfLine(f["to"].LineComment)}
+		to := target(f["to"], iw+".to")
+		if to == nil {
+			continue
+		}
+		requires, _ := l.values(f["requires"], iw+".requires")
+		if len(requires) == 0 {
+			if i != len(n.Content)-1 {
+				l.errf(diag.BranchAfterFallback, item, "%s has no requires, so the branches after it are never taken; move it to the end of the list", iw)
+				continue
+			}
+			to.Comments = c
+			next = to
+			continue
+		}
+		branches = append(branches, &osf.Branch{To: to, Requires: requires, Comments: c})
+	}
+	return next, branches
 }
 
 func contains(list []string, s string) bool {

@@ -278,7 +278,8 @@ type Node struct {
 	Speaker     *Str // Character.<id>
 	Title       *Str
 	Text        *Str
-	Next        *Str
+	Next        *Str      // followed when no branch matches
+	Branches    []*Branch // conditional next, tried in order before Next
 	Set         []Assign
 	Options     []*Option
 	Pos         diag.Pos
@@ -291,7 +292,8 @@ type Node struct {
 type Option struct {
 	ID               string
 	Text             *Str
-	Next             *Str
+	Next             *Str      // followed when no branch matches
+	Branches         []*Branch // conditional next, tried in order before Next
 	Requires         []Assign
 	Set              []Assign
 	Pos              diag.Pos
@@ -300,6 +302,29 @@ type Option struct {
 	Comments         Comments
 	RequiresComments Comments
 	SetComments      Comments
+}
+
+// Branch is a conditional next: To is followed when every Requires entry is
+// met. The branches of a node or option are tried in order; the first that
+// matches wins, and Next is followed when none does.
+type Branch struct {
+	To       *Str
+	Requires []Assign
+	Comments Comments
+}
+
+// Targets returns where next can lead: each branch's target, then Next.
+func Targets(branches []*Branch, next *Str) []*Str {
+	var out []*Str
+	for _, b := range branches {
+		if b.To != nil {
+			out = append(out, b.To)
+		}
+	}
+	if next != nil {
+		out = append(out, next)
+	}
+	return out
 }
 
 // IDSpan returns id as a Str written at pos. An id is one token on one line,

@@ -1,0 +1,74 @@
+{
+  "apiVersion": "dialogue/v1",
+  "kind": "Dialogue",
+  "data": {
+    "id": "door",
+    "startNode": "guard",
+    "nodes": {
+      "guard": {
+        "next": [
+          {
+            "to": "rich",
+            "requires": {
+              "gold": {
+                "operator": ">=",
+                "value": 10
+              }
+            }
+          },
+          {
+            "to": "friend",
+            "requires": {
+              "trusted": true
+            }
+          },
+          {
+            "to": "away"
+          }
+        ],
+        "content": {
+          "text": "The guard looks you over."
+        }
+      },
+      "rich": {
+        "content": {
+          "text": "Welcome, sir."
+        }
+      },
+      "friend": {
+        "content": {
+          "text": "Go in, friend."
+        }
+      },
+      "away": {
+        "content": {
+          "text": "Move along."
+        },
+        "options": {
+          "bribe": {
+            "set": {
+              "gold": {
+                "operation": "subtract",
+                "value": 2
+              }
+            },
+            "next": [
+              {
+                "to": "friend",
+                "requires": {
+                  "gold": {
+                    "operator": ">=",
+                    "value": 2
+                  }
+                }
+              }
+            ],
+            "content": {
+              "text": "Here, take this."
+            }
+          }
+        }
+      }
+    }
+  }
+}

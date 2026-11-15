@@ -68,6 +68,7 @@ This file is generated from `src/cli/internal/diag/rules.go`; regenerate it with
 | OSF122 | wrong-type | error | A YAML value of the wrong shape: a string where a mapping is expected, and so on. |
 | OSF123 | unknown-kind | error | A YAML kind that is not part of its apiVersion. |
 | OSF124 | duplicate-plugin | error | A plugin listed twice in the plugins Configuration. |
+| OSF125 | branch-after-fallback | error | A YAML `next` list entry without `requires` that is not the last one, so the entries after it are never taken. |
 | OSF200 | unknown-variable | error | `set` or `requires` names a Variable that does not exist. |
 | OSF201 | wrong-value-type | error | A `set` or `requires` value of a different type than the Variable, or a negative value set on an UnsignedNumber. |
 | OSF202 | bad-default | error | A Variable default of a different type than the Variable, or a negative default for an UnsignedNumber. |

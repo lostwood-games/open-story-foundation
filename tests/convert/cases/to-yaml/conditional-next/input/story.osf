@@ -1,0 +1,41 @@
+Versions {
+  language = "1"
+  story    = "v1"
+  dialogue = "v1"
+}
+
+Story vault {
+  name  = "Vault"
+  start = Dialogue.door
+}
+
+Variable gold: UnsignedNumber = 5
+Variable trusted: Boolean = false
+
+Dialogue door {
+  Node guard {
+    text: "The guard looks you over."
+    next: rich requires { gold >= 10 }  // tried first
+    next: friend requires { trusted: true }
+    next: away  // when neither matches
+  }
+
+  Node rich {
+    text: "Welcome, sir."
+  }
+
+  Node friend {
+    text: "Go in, friend."
+  }
+
+  Node away {
+    text: "Move along."
+
+    Option bribe {
+      text: "Here, take this."
+      set: { gold -= 2 }
+      // only when the player can pay
+      next: friend requires { gold >= 2 }
+    }
+  }
+}

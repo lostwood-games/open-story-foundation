@@ -1,0 +1,4 @@
+Story vault {
+  name  = "Vault"
+  start = Dialogue.door
+}

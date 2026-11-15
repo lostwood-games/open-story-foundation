@@ -1,0 +1,2 @@
+Variable gold: UnsignedNumber = 5
+Variable trusted: Boolean = false

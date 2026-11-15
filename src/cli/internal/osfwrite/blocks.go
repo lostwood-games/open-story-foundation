@@ -148,9 +148,7 @@ func node(w *writer, n *osf.Node, inLocale bool) {
 		if s := valueMap("set", n.Set); s != "" {
 			w.addc(s, n.SetComments)
 		}
-		if n.Next != nil {
-			w.addc("next: "+n.Next.Value, n.Next.Comments)
-		}
+		nexts(w, n.Branches, n.Next)
 		for _, o := range n.Options {
 			oneLine := inLocale && o.Text != nil && !strings.Contains(text(o.Text.Value, w.depth), "\n")
 			if !oneLine || len(w.lines) == 0 || !strings.HasPrefix(strings.TrimSpace(w.lines[len(w.lines)-1]), "Option ") {
@@ -169,12 +167,21 @@ func node(w *writer, n *osf.Node, inLocale bool) {
 				if s := valueMap("set", o.Set); s != "" {
 					w.addc(s, o.SetComments)
 				}
-				if o.Next != nil {
-					w.addc("next: "+o.Next.Value, o.Next.Comments)
-				}
+				nexts(w, o.Branches, o.Next)
 			})
 		}
 	})
+}
+
+// nexts writes the branches in order, each `next: to requires { ... }`, then
+// the plain `next:`.
+func nexts(w *writer, branches []*osf.Branch, next *osf.Str) {
+	for _, b := range branches {
+		w.addc("next: "+b.To.Value+" requires "+strings.TrimPrefix(valueMap("requires", b.Requires), "requires: "), b.Comments)
+	}
+	if next != nil {
+		w.addc("next: "+next.Value, next.Comments)
+	}
 }
 
 // locale writes a Locale block, turning translation keys back into Story,

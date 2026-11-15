@@ -53,6 +53,22 @@
       "type": "string",
       "pattern": "^([A-Za-z0-9_][A-Za-z0-9_-]*|Dialogue\\.[A-Za-z0-9_][A-Za-z0-9_-]*)$"
     },
+    "nextOrBranches": {
+      "description": "Where to go after a node or option: a target, or branches tried in order, the first whose requires are all met winning. Only the last branch may leave out requires.",
+      "oneOf": [
+        { "$ref": "#/$defs/next" },
+        { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/Branch" } }
+      ]
+    },
+    "Branch": {
+      "type": "object",
+      "required": ["to"],
+      "additionalProperties": false,
+      "properties": {
+        "to": { "$ref": "#/$defs/next" },
+        "requires": { "$ref": "#/$defs/variableConditions", "description": "The branch is taken only when every condition is met." }
+      }
+    },
     "value": { "type": ["boolean", "integer"], "minimum": -2147483648, "maximum": 2147483647, "description": "A Variable value: true, false or a whole number that fits in 32 bits." },
     "variableSets": {
       "description": "Map of Variable id to the value it is set to, or to an operation that adds to or subtracts from a number.",
@@ -165,7 +181,7 @@
       "properties": {
         "content": { "$ref": "#/$defs/Content" },
         "set": { "$ref": "#/$defs/variableSets", "description": "Variables changed when the node starts." },
-        "next": { "$ref": "#/$defs/next" },
+        "next": { "$ref": "#/$defs/nextOrBranches" },
         "options": {
           "type": "object",
           "minProperties": 1,
@@ -188,7 +204,7 @@
         },
         "requires": { "$ref": "#/$defs/variableConditions", "description": "Option is shown only when every condition is met." },
         "set": { "$ref": "#/$defs/variableSets", "description": "Variables changed when the option is chosen." },
-        "next": { "$ref": "#/$defs/next" }
+        "next": { "$ref": "#/$defs/nextOrBranches" }
       }
     },
     "Locale": {
