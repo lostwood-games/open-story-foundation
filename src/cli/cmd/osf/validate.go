@@ -27,9 +27,9 @@ func plural(n int, word string) string {
 func runValidate(args []string, stdout, stderr io.Writer) int {
 	fs := flag.NewFlagSet("validate", flag.ContinueOnError)
 	fs.SetOutput(stderr)
-	format := fs.String("format", "text", "")
+	output := fs.String("o", "text", "text or json")
 	fs.Usage = func() {
-		fmt.Fprint(stderr, `Usage: osf validate [-format text|json] [dir]
+		fmt.Fprint(stderr, `Usage: osf validate [-o text|json] [dir]
 
 Checks the project in dir (default: the current folder) against the Open Story
 spec: structure, ids, references, variable values and translations. Every
@@ -40,8 +40,8 @@ dir is read as .osf source if it holds any .osf file, otherwise as OSF YAML
 or JSON resources.
 
 Options:
-  -format json   Print the diagnostics as JSON on stdout instead of text on
-                 stderr: {"diagnostics": [...], "summary": {...}}.
+  -o json   Print the diagnostics as JSON on stdout instead of text on
+            stderr: {"diagnostics": [...], "summary": {...}}.
 `)
 	}
 	if err := parseArgs(fs, args); err != nil {
@@ -51,7 +51,7 @@ Options:
 	if !ok {
 		return 2
 	}
-	switch *format {
+	switch *output {
 	case "json":
 		p, diags := project.Analyze(dir)
 		out, err := diag.Marshal(diags)
@@ -66,7 +66,7 @@ Options:
 		return 0
 	case "text":
 	default:
-		fmt.Fprintf(stderr, "osf: unknown format %q; use text or json\n", *format)
+		fmt.Fprintf(stderr, "osf: unknown output %q; use text or json\n", *output)
 		return 2
 	}
 	p, diags := project.Analyze(dir)
