@@ -16,5 +16,16 @@ Dialogue street {
 
   Node beggar {
     text: "A beggar steps into the light of your lantern."
+
+    Option give {
+      text: "Give a coin"
+      requires: { outside.played: true, Dialogue.counter.offer.buy.selected: true }
+      set: { gold -= 1 }
+    }
+
+    Option walk {
+      text: "Walk past"
+      requires: { beggar.give.selected: false }
+    }
   }
 }
