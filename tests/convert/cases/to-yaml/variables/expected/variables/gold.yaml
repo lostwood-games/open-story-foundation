@@ -6,3 +6,4 @@ data:
   id: gold
   type: unsignedNumber
   default: 5
+  description: Coins the player carries.

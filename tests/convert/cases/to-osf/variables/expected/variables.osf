@@ -1,3 +1,3 @@
-Variable gold: UnsignedNumber = 5
+Variable gold: UnsignedNumber = 5 { description = "Coins the player carries." }
 Variable has_lantern: Boolean = false
 Variable mood: Number = -1
