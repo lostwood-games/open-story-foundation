@@ -1,0 +1,93 @@
+name: VS Code extension release
+
+on:
+  push:
+    tags: ['osf-vscode-v*']
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Test and package only, publish nothing
+        type: boolean
+        default: true
+
+permissions:
+  contents: write # create the GitHub release
+  id-token: write # trusted publishing to the Marketplace and Open VSX
+
+concurrency:
+  group: vscode-release
+  cancel-in-progress: false
+
+defaults:
+  run:
+    working-directory: src/vscode
+
+jobs:
+  release:
+    name: extension ${{ github.ref_name }}
+    runs-on: ubuntu-latest
+    env:
+      PUBLISH: ${{ github.event_name == 'push' || !inputs.dry_run }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: src/vscode/package-lock.json
+      - name: Check the tag matches package.json
+        if: github.event_name == 'push'
+        run: |
+          version="$(node -p "require('./package.json').version")"
+          test "$GITHUB_REF_NAME" = "osf-vscode-v$version" || {
+            echo "::error::tag $GITHUB_REF_NAME does not match package.json version $version"
+            exit 1
+          }
+      - name: Only publish from a tag
+        if: env.PUBLISH == 'true' && github.event_name != 'push'
+        run: |
+          echo "::error::publishing needs a tag osf-vscode-v<version>; run by hand with dry_run to test"
+          exit 1
+      - name: Install
+        run: npm ci
+      - name: Test the grammar
+        run: npm test
+      - name: Package
+        run: npm run package
+      - uses: actions/upload-artifact@v4
+        with:
+          name: osf-vsix
+          path: src/vscode/osf.vsix
+          if-no-files-found: error
+      - name: Publish to the Visual Studio Marketplace
+        if: env.PUBLISH == 'true'
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+        run: |
+          if [ -n "$VSCE_PAT" ]; then
+            npx vsce publish --packagePath osf.vsix
+          else
+            npx vsce publish --oidc --packagePath osf.vsix
+          fi
+      - name: Publish to Open VSX
+        if: env.PUBLISH == 'true'
+        env:
+          OVSX_PAT: ${{ secrets.OVSX_PAT }}
+        run: |
+          if [ -n "$OVSX_PAT" ]; then
+            npx ovsx publish osf.vsix
+          else
+            unset OVSX_PAT
+            npx ovsx publish --trusted-publishing osf.vsix
+          fi
+      - name: Create the GitHub release
+        if: env.PUBLISH == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" osf.vsix \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "VS Code extension ${GITHUB_REF_NAME#osf-vscode-v}" \
+            --notes "Install from the Visual Studio Marketplace or Open VSX, or with \`code --install-extension osf.vsix\`." \
+            --verify-tag \
+            --latest=false

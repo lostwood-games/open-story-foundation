@@ -1,0 +1,48 @@
+name: VS Code extension
+
+# Test and package the VS Code extension in src/vscode.
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/vscode/**'
+      - 'example/**/*.osf'
+      - 'tests/**/*.osf'
+      - '.github/workflows/vscode.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'src/vscode/**'
+      - 'example/**/*.osf'
+      - 'tests/**/*.osf'
+      - '.github/workflows/vscode.yml'
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: src/vscode
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: src/vscode/package-lock.json
+      - name: Install
+        run: npm ci
+      - name: Test the grammar
+        run: npm test
+      - name: Package
+        run: npm run package
+      - uses: actions/upload-artifact@v4
+        with:
+          name: osf-vsix
+          path: src/vscode/osf.vsix
+          if-no-files-found: error

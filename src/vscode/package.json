@@ -1,0 +1,70 @@
+{
+  "name": "osf",
+  "displayName": "Open Story Format (OSF)",
+  "description": "Syntax highlighting and editing support for .osf files, the Open Story Format language.",
+  "version": "0.1.0",
+  "publisher": "lostwood",
+  "license": "MIT",
+  "homepage": "https://openstoryfoundation.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lostwood-games/open-story-foundation.git",
+    "directory": "src/vscode"
+  },
+  "bugs": {
+    "url": "https://github.com/lostwood-games/open-story-foundation/issues"
+  },
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "keywords": [
+    "osf",
+    "open story",
+    "dialogue",
+    "interactive fiction",
+    "narrative"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "osf",
+        "aliases": [
+          "OSF",
+          "Open Story Format",
+          "osf"
+        ],
+        "extensions": [
+          ".osf"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "osf",
+        "scopeName": "source.osf",
+        "path": "./syntaxes/osf.tmLanguage.json"
+      }
+    ],
+    "configurationDefaults": {
+      "[osf]": {
+        "editor.tabSize": 2,
+        "editor.insertSpaces": true
+      }
+    }
+  },
+  "scripts": {
+    "test": "vscode-tmgrammar-test \"test/**/*.test.osf\" && node test/examples.mjs",
+    "package": "vsce package --out osf.vsix"
+  },
+  "devDependencies": {
+    "@vscode/vsce": "^4.1.1",
+    "ovsx": "^1.4.0",
+    "vscode-oniguruma": "^1.7.0",
+    "vscode-textmate": "^7.0.4",
+    "vscode-tmgrammar-test": "^0.1.3"
+  }
+}

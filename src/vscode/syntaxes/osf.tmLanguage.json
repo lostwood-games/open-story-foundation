@@ -1,0 +1,470 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "OSF",
+  "scopeName": "source.osf",
+  "fileTypes": [
+    "osf"
+  ],
+  "patterns": [
+    {
+      "include": "#statements"
+    }
+  ],
+  "repository": {
+    "statements": {
+      "patterns": [
+        {
+          "include": "#comments"
+        },
+        {
+          "include": "#long-text"
+        },
+        {
+          "include": "#string"
+        },
+        {
+          "include": "#variable-declaration"
+        },
+        {
+          "include": "#declaration"
+        },
+        {
+          "include": "#reference"
+        },
+        {
+          "include": "#history"
+        },
+        {
+          "include": "#node-options"
+        },
+        {
+          "include": "#content-field"
+        },
+        {
+          "include": "#keywords"
+        },
+        {
+          "include": "#resource-field"
+        },
+        {
+          "include": "#map-key"
+        },
+        {
+          "include": "#operators"
+        },
+        {
+          "include": "#constants"
+        },
+        {
+          "include": "#punctuation"
+        },
+        {
+          "include": "#identifier"
+        }
+      ]
+    },
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.double-slash.osf",
+          "match": "(//).*$",
+          "captures": {
+            "1": {
+              "name": "punctuation.definition.comment.osf"
+            }
+          }
+        },
+        {
+          "name": "comment.block.osf",
+          "begin": "/\\*",
+          "end": "\\*/",
+          "beginCaptures": {
+            "0": {
+              "name": "punctuation.definition.comment.begin.osf"
+            }
+          },
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.comment.end.osf"
+            }
+          }
+        }
+      ]
+    },
+    "long-text": {
+      "name": "string.quoted.triple.osf",
+      "begin": "\"\"\"",
+      "end": "\"\"\"",
+      "beginCaptures": {
+        "0": {
+          "name": "punctuation.definition.string.begin.osf"
+        }
+      },
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.definition.string.end.osf"
+        }
+      },
+      "patterns": [
+        {
+          "name": "comment.line.double-slash.writer-note.osf",
+          "match": "^\\s*(//).*$",
+          "captures": {
+            "1": {
+              "name": "punctuation.definition.comment.osf"
+            }
+          }
+        },
+        {
+          "name": "constant.character.escape.osf",
+          "match": "\\\\//|\\\\\\{\\{"
+        },
+        {
+          "include": "#interpolation"
+        }
+      ]
+    },
+    "string": {
+      "name": "string.quoted.double.osf",
+      "begin": "\"",
+      "end": "\"|$",
+      "beginCaptures": {
+        "0": {
+          "name": "punctuation.definition.string.begin.osf"
+        }
+      },
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.definition.string.end.osf"
+        }
+      },
+      "patterns": [
+        {
+          "name": "constant.character.escape.osf",
+          "match": "\\\\[\"\\\\nt]|\\\\\\{\\{"
+        },
+        {
+          "name": "invalid.illegal.escape.osf",
+          "match": "\\\\."
+        },
+        {
+          "include": "#interpolation"
+        }
+      ]
+    },
+    "interpolation": {
+      "name": "meta.interpolation.osf",
+      "begin": "\\{\\{",
+      "end": "\\}\\}",
+      "beginCaptures": {
+        "0": {
+          "name": "punctuation.section.interpolation.begin.osf"
+        }
+      },
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.section.interpolation.end.osf"
+        }
+      },
+      "patterns": [
+        {
+          "match": "\\b(Story|Character|Document|Variable|Dialogue)(\\.)([A-Za-z0-9_]+(?:-[A-Za-z0-9_]+)*)(?:(\\.)(name|description))?(?![A-Za-z0-9_-])",
+          "captures": {
+            "1": {
+              "name": "support.class.osf"
+            },
+            "2": {
+              "name": "punctuation.accessor.osf"
+            },
+            "3": {
+              "name": "variable.other.reference.osf"
+            },
+            "4": {
+              "name": "punctuation.accessor.osf"
+            },
+            "5": {
+              "name": "variable.other.property.osf"
+            }
+          }
+        },
+        {
+          "name": "invalid.illegal.reference.osf",
+          "match": "[^\\s}]+"
+        }
+      ]
+    },
+    "variable-declaration": {
+      "comment": "Variable gold: UnsignedNumber = 0",
+      "match": "\\b(Variable)\\s+([A-Za-z0-9_]+(?:-[A-Za-z0-9_]+)*)\\s*(:)\\s*(Boolean|Number|UnsignedNumber|[A-Za-z0-9_]+(?:-[A-Za-z0-9_]+)*)?",
+      "captures": {
+        "1": {
+          "name": "storage.type.osf"
+        },
+        "2": {
+          "name": "entity.name.type.variable.osf"
+        },
+        "3": {
+          "name": "punctuation.separator.type.osf"
+        },
+        "4": {
+          "name": "support.type.osf"
+        }
+      }
+    },
+    "declaration": {
+      "patterns": [
+        {
+          "comment": "Blocks without an id",
+          "match": "\\b(Versions|I18n)\\b",
+          "name": "storage.type.osf"
+        },
+        {
+          "comment": "Story LDOD {, Dialogue 01_intro_scene {, Locale Rus \"Russian\"",
+          "match": "\\b(Story|Locale|Character|Document|Variable|Dialogue)\\b(?!\\.)(?:\\s+([A-Za-z0-9_]+(?:-[A-Za-z0-9_]+)*))?",
+          "captures": {
+            "1": {
+              "name": "storage.type.osf"
+            },
+            "2": {
+              "name": "entity.name.type.osf"
+            }
+          }
+        },
+        {
+          "comment": "Node and Option blocks",
+          "match": "\\b(Node|Option)\\b(?:\\s+([A-Za-z0-9_]+(?:-[A-Za-z0-9_]+)*))?",
+          "captures": {
+            "1": {
+              "name": "storage.type.osf"
+            },
+            "2": {
+              "name": "entity.name.function.osf"
+            }
+          }
+        },
+        {
+          "match": "\\b(Boolean|Number|UnsignedNumber)\\b",
+          "name": "support.type.osf"
+        }
+      ]
+    },
+    "reference": {
+      "comment": "Dialogue.02_shadows_speak, Dialogue.cellar.door.stateData.played",
+      "match": "\\b(Story|Character|Document|Variable|Dialogue)(\\.)([A-Za-z0-9_]+(?:-[A-Za-z0-9_]+)*)",
+      "captures": {
+        "1": {
+          "name": "support.class.osf"
+        },
+        "2": {
+          "name": "punctuation.accessor.osf"
+        },
+        "3": {
+          "name": "variable.other.reference.osf"
+        }
+      }
+    },
+    "history": {
+      "patterns": [
+        {
+          "comment": "rumours.stateData.played",
+          "match": "(?<![A-Za-z0-9_-])(?:([A-Za-z0-9_]+(?:-[A-Za-z0-9_]+)*)(\\.))?(stateData)(\\.)(played)(?![A-Za-z0-9_-])",
+          "captures": {
+            "1": {
+              "name": "entity.name.function.osf"
+            },
+            "2": {
+              "name": "punctuation.accessor.osf"
+            },
+            "3": {
+              "name": "variable.language.osf"
+            },
+            "4": {
+              "name": "punctuation.accessor.osf"
+            },
+            "5": {
+              "name": "variable.language.osf"
+            }
+          }
+        },
+        {
+          "comment": "hub.options.room.selected",
+          "match": "(?<![A-Za-z0-9_-])(?:([A-Za-z0-9_]+(?:-[A-Za-z0-9_]+)*)(\\.))?(options)(\\.)([A-Za-z0-9_]+(?:-[A-Za-z0-9_]+)*)(\\.)(selected)(?![A-Za-z0-9_-])",
+          "captures": {
+            "1": {
+              "name": "entity.name.function.osf"
+            },
+            "2": {
+              "name": "punctuation.accessor.osf"
+            },
+            "3": {
+              "name": "variable.language.osf"
+            },
+            "4": {
+              "name": "punctuation.accessor.osf"
+            },
+            "5": {
+              "name": "entity.name.function.osf"
+            },
+            "6": {
+              "name": "punctuation.accessor.osf"
+            },
+            "7": {
+              "name": "variable.language.osf"
+            }
+          }
+        }
+      ]
+    },
+    "node-options": {
+      "comment": "next: hub.options",
+      "match": "(?<![A-Za-z0-9_-])([A-Za-z0-9_]+(?:-[A-Za-z0-9_]+)*)(\\.)(options)(?![A-Za-z0-9_.-])",
+      "captures": {
+        "1": {
+          "name": "entity.name.function.osf"
+        },
+        "2": {
+          "name": "punctuation.accessor.osf"
+        },
+        "3": {
+          "name": "variable.language.osf"
+        }
+      }
+    },
+    "content-field": {
+      "patterns": [
+        {
+          "comment": "next: node_04 (a node of this dialogue)",
+          "match": "\\b(next)\\s*(:)\\s*([A-Za-z0-9_]+(?:-[A-Za-z0-9_]+)*)(?![A-Za-z0-9_.-])",
+          "captures": {
+            "1": {
+              "name": "keyword.other.field.osf"
+            },
+            "2": {
+              "name": "punctuation.separator.key-value.osf"
+            },
+            "3": {
+              "name": "entity.name.function.osf"
+            }
+          }
+        },
+        {
+          "comment": "Node and Option fields: speaker: protagonist",
+          "match": "\\b(speaker|title|text|next|set|requires)\\s*(:)",
+          "captures": {
+            "1": {
+              "name": "keyword.other.field.osf"
+            },
+            "2": {
+              "name": "punctuation.separator.key-value.osf"
+            }
+          }
+        }
+      ]
+    },
+    "keywords": {
+      "patterns": [
+        {
+          "match": "(?<![A-Za-z0-9_-])(requires)(?![A-Za-z0-9_-])",
+          "name": "keyword.control.conditional.osf"
+        },
+        {
+          "match": "(?<![A-Za-z0-9_-])(or)(?![A-Za-z0-9_-])",
+          "name": "keyword.operator.logical.osf"
+        },
+        {
+          "comment": "start node_02 (in a Dialogue)",
+          "match": "(?<![A-Za-z0-9_-])(start)\\s+([A-Za-z0-9_]+(?:-[A-Za-z0-9_]+)*)(?![A-Za-z0-9_.-])",
+          "captures": {
+            "1": {
+              "name": "keyword.other.start.osf"
+            },
+            "2": {
+              "name": "entity.name.function.osf"
+            }
+          }
+        },
+        {
+          "match": "(?<![A-Za-z0-9_-])(start)(?![A-Za-z0-9_-])",
+          "name": "keyword.other.start.osf"
+        }
+      ]
+    },
+    "resource-field": {
+      "comment": "Resource fields: name = \"...\"",
+      "match": "(?<![A-Za-z0-9_-])([A-Za-z0-9_]+(?:-[A-Za-z0-9_]+)*)\\s*(=)(?!=)",
+      "captures": {
+        "1": {
+          "name": "variable.other.property.osf"
+        },
+        "2": {
+          "name": "keyword.operator.assignment.osf"
+        }
+      }
+    },
+    "map-key": {
+      "comment": "Variables in set and requires maps: { gold >= 3, is_dreaming: true }",
+      "match": "(?<![A-Za-z0-9_-])([A-Za-z0-9_]+(?:-[A-Za-z0-9_]+)*)(?=\\s*(?::|\\+=|-=|!=|<=|>=|<|>))",
+      "name": "variable.other.osf"
+    },
+    "operators": {
+      "patterns": [
+        {
+          "match": "\\+=|-=",
+          "name": "keyword.operator.assignment.compound.osf"
+        },
+        {
+          "match": "!=|<=|>=|<|>",
+          "name": "keyword.operator.comparison.osf"
+        },
+        {
+          "match": "=",
+          "name": "keyword.operator.assignment.osf"
+        }
+      ]
+    },
+    "constants": {
+      "patterns": [
+        {
+          "match": "(?<![A-Za-z0-9_-])(true|false)(?![A-Za-z0-9_-])",
+          "name": "constant.language.boolean.osf"
+        },
+        {
+          "match": "(?<![A-Za-z0-9_-])-?[0-9]+(?![A-Za-z0-9_-])",
+          "name": "constant.numeric.integer.osf"
+        }
+      ]
+    },
+    "punctuation": {
+      "patterns": [
+        {
+          "match": "\\{",
+          "name": "punctuation.section.block.begin.osf"
+        },
+        {
+          "match": "\\}",
+          "name": "punctuation.section.block.end.osf"
+        },
+        {
+          "match": ":",
+          "name": "punctuation.separator.key-value.osf"
+        },
+        {
+          "match": ",",
+          "name": "punctuation.separator.comma.osf"
+        },
+        {
+          "match": ";",
+          "name": "punctuation.terminator.statement.osf"
+        },
+        {
+          "match": "\\.",
+          "name": "punctuation.accessor.osf"
+        }
+      ]
+    },
+    "identifier": {
+      "match": "[A-Za-z0-9_]+(?:-[A-Za-z0-9_]+)*",
+      "name": "variable.other.id.osf"
+    }
+  }
+}

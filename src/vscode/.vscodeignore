@@ -1,0 +1,6 @@
+# Only package.json, the grammar, the language configuration, README, CHANGELOG
+# and LICENSE go into the .vsix.
+node_modules/**
+test/**
+.gitignore
+*.vsix
