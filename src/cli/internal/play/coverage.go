@@ -3,6 +3,7 @@ package play
 import (
 	"fmt"
 	"io"
+	"slices"
 	"sort"
 	"strings"
 
@@ -10,7 +11,7 @@ import (
 )
 
 // MaxStates bounds the coverage search; a project with more distinct
-// (dialogue, node, variables) states is reported as an error.
+// (dialogue, node, variables, history) states is reported as an error.
 const MaxStates = 200000
 
 // Finding is one coverage problem.
@@ -40,15 +41,21 @@ type Report struct {
 }
 
 // state is a place in the play: a node whose set has been applied, with the
-// variable values at that moment.
+// variable values and the history at that moment.
 type state struct {
 	d    *osf.Dialogue
 	n    *osf.Node
 	vars map[string]osf.Value
+	hist history
+}
+
+func (st *state) world() world {
+	return world{dialogue: st.d.ID, vars: st.vars, hist: st.hist}
 }
 
 type explorer struct {
 	ix      *index
+	tracked map[string]bool // history keys some condition reads
 	states  map[string]*state
 	order   []string            // state keys in discovery order
 	edges   map[string][]string // state key -> successor keys; end is the ending
@@ -70,6 +77,7 @@ func Coverage(p *osf.Project, dialogue string) (*Report, error) {
 	}
 	e := &explorer{
 		ix:      s.ix,
+		tracked: map[string]bool{},
 		states:  map[string]*state{},
 		edges:   map[string][]string{},
 		stuck:   map[string][]string{},
@@ -80,7 +88,10 @@ func Coverage(p *osf.Project, dialogue string) (*Report, error) {
 	for _, v := range p.Variables {
 		vars[v.ID] = v.Default
 	}
-	e.add(s.start, startNode(s.start), vars)
+	for _, k := range trackedHistory(p) {
+		e.tracked[k] = true
+	}
+	e.add(s.start, startNode(s.start), vars, history{}, false)
 	for i := 0; i < len(e.order); i++ {
 		if len(e.order) > MaxStates {
 			return nil, fmt.Errorf("coverage: more than %d states; the variable space is too large to explore", MaxStates)
@@ -103,16 +114,47 @@ func (e *explorer) varsKey(vars map[string]osf.Value) string {
 	return strings.Join(parts, ", ")
 }
 
-// add enters node n with vars, applies its set and returns the state key.
-func (e *explorer) add(d *osf.Dialogue, n *osf.Node, vars map[string]osf.Value) string {
+// histKey lists the tracked history that is set, for a state key.
+func histKey(h history) string {
+	keys := make([]string, 0, len(h))
+	for k := range h {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	return strings.Join(keys, ", ")
+}
+
+// with returns h plus key, when some condition reads that key. Other history
+// cannot change how the play goes on, so it is left out of the states.
+func (e *explorer) with(h history, key string) history {
+	if !e.tracked[key] || h[key] {
+		return h
+	}
+	out := history{key: true}
+	for k := range h {
+		out[k] = true
+	}
+	return out
+}
+
+// add enters node n with vars and history, marks it played, applies its set
+// and returns the state key. With back the node's options are offered again
+// (next: <node>.options): it is not entered, so nothing is applied.
+func (e *explorer) add(d *osf.Dialogue, n *osf.Node, vars map[string]osf.Value, hist history, back bool) string {
 	next := copyVars(vars)
-	for _, a := range n.Set {
-		next[a.Name] = a.Apply(e.ix.typeOf(a.Name), next[a.Name])
+	if !back {
+		hist = e.with(hist, playedKey(d.ID, n.ID))
+		for _, a := range n.Set {
+			next[a.Name] = a.Apply(e.ix.typeOf(a.Name), next[a.Name])
+		}
 	}
 	vk := e.varsKey(next)
-	key := d.ID + "." + n.ID + " [" + vk + "]"
+	key := d.ID + "." + n.ID + " [" + vk + "] {" + histKey(hist) + "}"
+	if back {
+		key += " options"
+	}
 	if _, ok := e.states[key]; !ok {
-		e.states[key] = &state{d, n, next}
+		e.states[key] = &state{d, n, next, hist}
 		e.order = append(e.order, key)
 		nk := d.ID + "." + n.ID
 		e.visited[nk] = append(e.visited[nk], vk)
@@ -122,9 +164,10 @@ func (e *explorer) add(d *osf.Dialogue, n *osf.Node, vars map[string]osf.Value) 
 
 func (e *explorer) expand(key string) {
 	st := e.states[key]
-	if st.n.Next != nil {
-		if d, n := e.target(st.d, st.n.Next.Value); n != nil {
-			e.edges[key] = append(e.edges[key], e.add(d, n, st.vars))
+	// A state reached by <node>.options goes straight to the options.
+	if next, ok := st.world().next(st.n.Branches, st.n.Next); ok && !strings.HasSuffix(key, " options") {
+		if d, n, back := e.target(st.d, next); n != nil {
+			e.edges[key] = append(e.edges[key], e.add(d, n, st.vars, st.hist, back))
 		}
 		return
 	}
@@ -135,7 +178,7 @@ func (e *explorer) expand(key string) {
 	}
 	any := false
 	for _, o := range st.n.Options {
-		if !allowed(o, st.vars) {
+		if !st.world().allowed(o) {
 			continue
 		}
 		any = true
@@ -144,13 +187,15 @@ func (e *explorer) expand(key string) {
 		for _, a := range o.Set {
 			vars[a.Name] = a.Apply(e.ix.typeOf(a.Name), vars[a.Name])
 		}
-		if o.Next == nil {
+		hist := e.with(st.hist, selectedKey(st.d.ID, st.n.ID, o.ID))
+		next, ok := world{dialogue: st.d.ID, vars: vars, hist: hist}.next(o.Branches, o.Next)
+		if !ok {
 			e.edges[key] = append(e.edges[key], end)
 			e.endings++
 			continue
 		}
-		if d, n := e.target(st.d, o.Next.Value); n != nil {
-			e.edges[key] = append(e.edges[key], e.add(d, n, vars))
+		if d, n, back := e.target(st.d, next); n != nil {
+			e.edges[key] = append(e.edges[key], e.add(d, n, vars, hist, back))
 		}
 	}
 	if !any {
@@ -159,17 +204,20 @@ func (e *explorer) expand(key string) {
 	}
 }
 
-// target resolves a next value; nil when it points nowhere (validation
-// reports that separately).
-func (e *explorer) target(d *osf.Dialogue, next string) (*osf.Dialogue, *osf.Node) {
+// target resolves a next value; the node is nil when it points nowhere
+// (validation reports that separately). back is true for <node>.options.
+func (e *explorer) target(d *osf.Dialogue, next string) (nd *osf.Dialogue, n *osf.Node, back bool) {
 	if strings.HasPrefix(next, "Dialogue.") {
 		nd, ok := e.ix.dialogues[strings.TrimPrefix(next, "Dialogue.")]
 		if !ok {
-			return nil, nil
+			return nil, nil, false
 		}
-		return nd, startNode(nd)
+		return nd, startNode(nd), false
 	}
-	return d, findNode(d, next)
+	if id, ok := backToOptions(next); ok {
+		return d, findNode(d, id), true
+	}
+	return d, findNode(d, next), false
 }
 
 func (e *explorer) summary(p *osf.Project, r *Report) {
@@ -198,7 +246,9 @@ func (e *explorer) deadEnds(p *osf.Project, r *Report) {
 			if len(stuck) == len(e.visited[nk]) || len(p.Variables) == 0 {
 				when = "in every reachable state"
 			} else {
+				// The same values can be stuck with several histories.
 				sort.Strings(stuck)
+				stuck = slices.Compact(stuck)
 				when = "when " + strings.Join(stuck, " or when ")
 			}
 			r.Findings = append(r.Findings, Finding{Kind: "dead end", Dialogue: d.ID, Node: n.ID,

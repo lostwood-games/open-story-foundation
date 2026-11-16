@@ -30,6 +30,8 @@ Strange
 == End
 ```
 
+After `next: <node>.options` the node's options are printed again without its line.
+
 When the choices run out with options pending, the options are printed followed by
 `(stopped: 2 options pending)`.
 

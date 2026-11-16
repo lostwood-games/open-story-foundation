@@ -3,6 +3,13 @@
 Each release adds to the format without changing what earlier files mean: a project
 that `osf` 0.1.0 accepts is still valid and means the same thing.
 
+## 0.6.1
+
+- `osf play` and `osf play -coverage` now follow everything the format allows: a
+  conditional `next`, played and selected conditions, and `next: <node>.options`. Before,
+  they ignored these, so a valid story could play wrongly and coverage could report
+  reachable nodes as not reached. The format itself is unchanged.
+
 ## 0.6.0
 
 - `next: hub.options` goes back to the options of node `hub` without showing its line

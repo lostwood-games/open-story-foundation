@@ -198,25 +198,6 @@ func findNode(d *osf.Dialogue, id string) *osf.Node {
 	return nil
 }
 
-// allowed reports whether the current values meet the option's requires:
-// every entry of one of its groups. An option without requires is allowed.
-func allowed(o *osf.Option, vars map[string]osf.Value) bool {
-	groups := osf.Groups(o.Requires, o.RequiresOr)
-	for _, g := range groups {
-		met := true
-		for _, r := range g {
-			if v, ok := vars[r.Name]; !ok || !r.Holds(v) {
-				met = false
-				break
-			}
-		}
-		if met {
-			return true
-		}
-	}
-	return len(groups) == 0
-}
-
 // typeOf is the type of variable name; an unknown one counts as a number.
 func (ix *index) typeOf(name string) osf.VarType {
 	if v := ix.variables[name]; v != nil {

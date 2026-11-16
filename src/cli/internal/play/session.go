@@ -1,5 +1,6 @@
-// Package play runs a dialogue of an Open Story project: it follows next
-// chains, applies set, filters options by requires and resolves {{ }} in text.
+// Package play runs a dialogue of an Open Story project as spec §5 defines:
+// it follows next chains and their branches, applies set, remembers what was
+// played, filters options by requires and resolves {{ }} in text.
 // Session is the engine; Coverage explores every reachable path.
 package play
 
@@ -39,6 +40,7 @@ type Session struct {
 	dialogue *osf.Dialogue
 	node     *osf.Node
 	vars     map[string]osf.Value
+	hist     history
 	finished bool
 	lines    []Line // since the last choice
 	all      []Line
@@ -143,6 +145,7 @@ func (s *Session) Start() (State, error) {
 	for _, v := range s.ix.p.Variables {
 		s.vars[v.ID] = v.Default
 	}
+	s.hist = history{}
 	s.finished, s.lines, s.all, s.path, s.chosen = false, nil, nil, nil, nil
 	s.dialogue, s.node = s.start, nil
 	if err := s.follow(startNode(s.start).ID); err != nil {
@@ -194,20 +197,27 @@ func (s *Session) choose(index int, o *osf.Option) (State, error) {
 	s.path[len(s.path)-1].Option = o.ID
 	s.lines = nil
 	s.chosen = &Chosen{Index: index, ID: o.ID, Text: s.optionText(o)}
+	s.hist[selectedKey(s.dialogue.ID, s.node.ID, o.ID)] = true
 	s.chosen.Set = s.apply(o.Set)
-	if o.Next == nil {
+	next, ok := s.world().next(o.Branches, o.Next)
+	if !ok {
 		s.finished = true
 		return s.State(), nil
 	}
-	if err := s.follow(o.Next.Value); err != nil {
+	if err := s.follow(next); err != nil {
 		return s.State(), err
 	}
 	return s.State(), nil
 }
 
-// follow goes to a next target: a node of the current dialogue or
-// Dialogue.<id>, then keeps following next until a node with options or an
-// end.
+// world is what conditions are checked against at this moment.
+func (s *Session) world() world {
+	return world{dialogue: s.dialogue.ID, vars: s.vars, hist: s.hist}
+}
+
+// follow goes to a next target: a node of the current dialogue,
+// <node>.options or Dialogue.<id>, then keeps following next until a node
+// with options or an end.
 func (s *Session) follow(next string) error {
 	d, n := s.dialogue, (*osf.Node)(nil)
 	for steps := 0; ; steps++ {
@@ -223,20 +233,31 @@ func (s *Session) follow(next string) error {
 			if d, n = nd, startNode(nd); n == nil {
 				return fmt.Errorf("next: Dialogue %s has no nodes", nd.ID)
 			}
+		} else if id, back := backToOptions(next); back {
+			// Offer the node's options again: no line, no set.
+			if n = findNode(d, id); n == nil {
+				return fmt.Errorf("next: node %q does not exist in Dialogue %s", id, d.ID)
+			}
+			s.dialogue, s.node = d, n
+			s.path = append(s.path, Visit{Dialogue: d.ID, Node: n.ID})
+			s.finished = len(n.Options) == 0
+			return nil
 		} else if n = findNode(d, next); n == nil {
 			return fmt.Errorf("next: node %q does not exist in Dialogue %s", next, d.ID)
 		}
 		s.dialogue, s.node = d, n
+		s.hist[playedKey(d.ID, n.ID)] = true
 		line := Line{Dialogue: d.ID, Node: n.ID, Set: s.apply(n.Set)}
 		line.Speaker, line.Text = s.speaker(n), s.nodeText(n)
 		s.lines = append(s.lines, line)
 		s.all = append(s.all, line)
 		s.path = append(s.path, Visit{Dialogue: d.ID, Node: n.ID})
-		if n.Next == nil {
+		target, ok := s.world().next(n.Branches, n.Next)
+		if !ok {
 			s.finished = len(n.Options) == 0
 			return nil
 		}
-		next = n.Next.Value
+		next = target
 	}
 }
 
@@ -276,7 +297,7 @@ func (s *Session) optionText(o *osf.Option) string {
 func (s *Session) allowedOptions() []*osf.Option {
 	var out []*osf.Option
 	for _, o := range s.node.Options {
-		if allowed(o, s.vars) {
+		if s.world().allowed(o) {
 			out = append(out, o)
 		}
 	}
