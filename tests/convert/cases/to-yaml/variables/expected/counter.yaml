@@ -13,10 +13,13 @@ data:
       options:
         buy:
           requires:
-            gold:
-              operator: '>='
-              value: 3
-            has_lantern: false
+            any:
+              - all:
+                  - {variable: gold, operator: ">=", value: 3}
+                  - {variable: gold, operator: "<=", value: 20}
+                  - {variable: has_lantern, operator: "==", value: false}
+              - all:
+                  - {variable: god_mode, operator: "==", value: true}
           set:
             gold:
               operation: subtract
@@ -30,9 +33,9 @@ data:
             text: Buy it
         leave:
           requires:
-            money:
-              operator: '!='
-              value: 2
+            all:
+              - {variable: money, operator: "!=", value: 2}
+              - {variable: money, operator: "!=", value: 3}
           set:
             money: 0
           next: Dialogue.street

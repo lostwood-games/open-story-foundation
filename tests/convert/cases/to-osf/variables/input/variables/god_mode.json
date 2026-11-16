@@ -1,0 +1,9 @@
+{
+  "apiVersion": "story/v1",
+  "kind": "Variable",
+  "data": {
+    "id": "god_mode",
+    "type": "boolean",
+    "default": false
+  }
+}

@@ -1,3 +1,4 @@
+Variable god_mode: Boolean = false
 Variable gold: UnsignedNumber = 5 { description = "Coins the player carries." }
 Variable happiness: Number = -1
 Variable has_lantern: Boolean = false
