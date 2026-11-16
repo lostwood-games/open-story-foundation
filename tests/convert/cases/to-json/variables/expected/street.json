@@ -81,6 +81,12 @@
               "text": "Give a coin"
             }
           },
+          "ask": {
+            "next": "story",
+            "content": {
+              "text": "Ask about the street"
+            }
+          },
           "walk": {
             "requires": {
               "beggar.options.give.selected": false
@@ -89,6 +95,12 @@
               "text": "Walk past"
             }
           }
+        }
+      },
+      "story": {
+        "next": "beggar.options",
+        "content": {
+          "text": "Nobody comes here after dark."
         }
       }
     }

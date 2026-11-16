@@ -270,10 +270,12 @@ func Project(p *osf.Project) Result {
 				if _, ok := defined[next.Value]; !ok {
 					r.suggest(diag.UnknownDialogue, next, pos, next.Value, refs("Dialogue"), "%s: next: %s does not exist", where, next.Value)
 				}
-			} else if !nodes[next.Value] {
-				r.suggest(diag.UnknownNode, next, pos, next.Value, nodeIDs, "%s: next: node %q does not exist in Dialogue %s", where, next.Value, d.ID)
+			} else if id, back := strings.CutSuffix(next.Value, ".options"); !nodes[id] {
+				r.suggest(diag.UnknownNode, next, pos, id, nodeIDs, "%s: next: node %q does not exist in Dialogue %s", where, id, d.ID)
+			} else if back && len(graph[d.ID][id]) == 0 {
+				r.at(diag.NoOptionsToReturn, next, pos, "%s: next: %s: Node %s has no options to go back to", where, next.Value, id)
 			} else {
-				reached[next.Value] = true
+				reached[id] = true
 			}
 		}
 		for _, n := range d.Nodes {

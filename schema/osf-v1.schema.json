@@ -49,9 +49,9 @@
     "characterRef": { "type": "string", "pattern": "^Character\\.[A-Za-z0-9_][A-Za-z0-9_-]*$" },
     "dialogueRef": { "type": "string", "pattern": "^Dialogue\\.[A-Za-z0-9_][A-Za-z0-9_-]*$" },
     "next": {
-      "description": "A node id in the same dialogue, or Dialogue.<id> to jump to another dialogue's startNode.",
+      "description": "A node id in the same dialogue, <node>.options to offer that node's options again, or Dialogue.<id> to jump to another dialogue's startNode.",
       "type": "string",
-      "pattern": "^([A-Za-z0-9_][A-Za-z0-9_-]*|Dialogue\\.[A-Za-z0-9_][A-Za-z0-9_-]*)$"
+      "pattern": "^([A-Za-z0-9_][A-Za-z0-9_-]*(\\.options)?|Dialogue\\.[A-Za-z0-9_][A-Za-z0-9_-]*)$"
     },
     "nextOrBranches": {
       "description": "Where to go after a node or option: a target, or branches tried in order, the first whose requires are all met winning. Only the last branch may leave out requires.",

@@ -21,7 +21,7 @@ import (
 var (
 	characterRef = regexp.MustCompile(`^Character\.[A-Za-z0-9_][A-Za-z0-9_-]*$`)
 	dialogueRef  = regexp.MustCompile(`^Dialogue\.[A-Za-z0-9_][A-Za-z0-9_-]*$`)
-	nextPattern  = regexp.MustCompile(`^([A-Za-z0-9_][A-Za-z0-9_-]*|Dialogue\.[A-Za-z0-9_][A-Za-z0-9_-]*)$`)
+	nextPattern  = regexp.MustCompile(`^([A-Za-z0-9_][A-Za-z0-9_-]*(\.options)?|Dialogue\.[A-Za-z0-9_][A-Za-z0-9_-]*)$`)
 	keyPattern   = regexp.MustCompile(`^(Story|Character|Document|Dialogue)\.[A-Za-z0-9_][A-Za-z0-9_-]*(\.[A-Za-z0-9_][A-Za-z0-9_-]*)+$`)
 	pluginPatt   = regexp.MustCompile(`^[a-z0-9-]+/v[0-9]+$`)
 )
@@ -754,7 +754,7 @@ func (l *loader) dialogue(data *yaml.Node, pos, end diag.Pos, block func(map[str
 // requires. That last one is returned as the plain next.
 func (l *loader) nexts(n *yaml.Node, what string) (*osf.Str, []*osf.Branch) {
 	target := func(n *yaml.Node, what string) *osf.Str {
-		return l.matching(n, what, nextPattern, "must be a node id or Dialogue.<id>")
+		return l.matching(n, what, nextPattern, "must be a node id, <node>.options or Dialogue.<id>")
 	}
 	if n == nil {
 		return nil, nil
