@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.1.0
+## 1.0.0
 
 - Syntax highlighting for the OSF language as of OSF 0.6.0: blocks, fields, references,
   `{{ }}` text references, long text with writer's notes, `requires` with `or`

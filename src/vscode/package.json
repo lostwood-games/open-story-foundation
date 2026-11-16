@@ -2,7 +2,7 @@
   "name": "osf",
   "displayName": "Open Story Format (OSF)",
   "description": "Syntax highlighting and editing support for .osf files, the Open Story Format language.",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "publisher": "lostwood",
   "license": "MIT",
   "homepage": "https://openstoryfoundation.com",

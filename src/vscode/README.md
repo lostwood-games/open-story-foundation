@@ -58,8 +58,8 @@ Bump `version` in `package.json` and add it to `CHANGELOG.md`, then push a tag
 `osf-vscode-v<version>` from `main`:
 
 ```sh
-git tag osf-vscode-v0.1.0
-git push origin osf-vscode-v0.1.0
+git tag osf-vscode-v1.0.0
+git push origin osf-vscode-v1.0.0
 ```
 
 The `VS Code extension release` workflow tests and packages the extension, publishes it
