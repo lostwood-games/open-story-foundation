@@ -1,0 +1,6 @@
+# osf play -coverage
+== Coverage from Dialogue 01_intro_scene
+01_intro_scene: 4/4 nodes reached
+02_shadows_speak: 2/2 nodes reached
+6 states, 2 endings
+== No findings

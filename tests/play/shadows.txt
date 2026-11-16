@@ -1,0 +1,5 @@
+# osf play -dialogue 02_shadows_speak
+== Dialogue 02_shadows_speak
+Stranger: Hello
+Stranger: You are not dreaming. Not anymore.
+== End
