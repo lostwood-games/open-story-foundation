@@ -2,8 +2,8 @@
   "apiVersion": "story/v1",
   "kind": "Variable",
   "data": {
-    "id": "mood",
+    "id": "money",
     "type": "number",
-    "default": -1
+    "default": 10
   }
 }

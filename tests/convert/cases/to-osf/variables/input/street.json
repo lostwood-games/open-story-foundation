@@ -6,8 +6,43 @@
     "startNode": "outside",
     "nodes": {
       "outside": {
+        "next": [
+          {
+            "to": "beggar",
+            "requires": {
+              "has_lantern": true
+            }
+          },
+          {
+            "to": "dark",
+            "requires": {
+              "happiness": {
+                "operator": "<",
+                "value": 0
+              }
+            }
+          },
+          {
+            "to": "home"
+          }
+        ],
         "content": {
           "text": "The street is empty."
+        }
+      },
+      "dark": {
+        "content": {
+          "text": "The empty street makes you feel even worse."
+        }
+      },
+      "home": {
+        "content": {
+          "text": "You walk home."
+        }
+      },
+      "beggar": {
+        "content": {
+          "text": "A beggar steps into the light of your lantern."
         }
       }
     }

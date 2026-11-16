@@ -22,7 +22,7 @@ data:
               operation: subtract
               value: 3
             has_lantern: true
-            mood:
+            happiness:
               operation: add
               value: 1
           next: thanks
@@ -30,11 +30,11 @@ data:
             text: Buy it
         leave:
           requires:
-            mood:
+            money:
               operator: '!='
               value: 2
           set:
-            mood: 0
+            money: 0
           next: Dialogue.street
           content:
             text: Leave

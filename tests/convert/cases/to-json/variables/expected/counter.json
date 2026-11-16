@@ -25,7 +25,7 @@
                 "value": 3
               },
               "has_lantern": true,
-              "mood": {
+              "happiness": {
                 "operation": "add",
                 "value": 1
               }
@@ -37,13 +37,13 @@
           },
           "leave": {
             "requires": {
-              "mood": {
+              "money": {
                 "operator": "!=",
                 "value": 2
               }
             },
             "set": {
-              "mood": 0
+              "money": 0
             },
             "next": "Dialogue.street",
             "content": {

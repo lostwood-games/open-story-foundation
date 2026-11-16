@@ -6,14 +6,14 @@ Dialogue counter {
     Option buy {
       text: "Buy it"
       requires: { gold >= 3, has_lantern: false }
-      set: { gold -= 3, has_lantern: true, mood += 1 }
+      set: { gold -= 3, has_lantern: true, happiness += 1 }
       next: thanks
     }
 
     Option leave {
       text: "Leave"
-      requires: { mood != 2 }
-      set: { mood: 0 }
+      requires: { money != 2 }
+      set: { money: 0 }
       next: Dialogue.street
     }
   }
