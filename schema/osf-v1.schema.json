@@ -66,7 +66,7 @@
       "additionalProperties": false,
       "properties": {
         "to": { "$ref": "#/$defs/next" },
-        "requires": { "$ref": "#/$defs/variableConditions", "description": "The branch is taken only when every condition is met." }
+        "requires": { "$ref": "#/$defs/requires", "description": "The branch is taken only when the conditions are met." }
       }
     },
     "value": { "type": ["boolean", "integer"], "minimum": -2147483648, "maximum": 2147483647, "description": "A Variable value: true, false or a whole number that fits in 32 bits." },
@@ -83,6 +83,43 @@
       "properties": {
         "operation": { "enum": ["add", "subtract"] },
         "value": { "type": "integer", "minimum": 0, "maximum": 2147483647, "description": "The amount, 0 or more." }
+      }
+    },
+    "requires": {
+      "description": "Conditions in the short form, a map where every entry must be met, or in the full form: all (every condition must be met) or any (one group is enough).",
+      "if": { "type": "object", "anyOf": [
+        { "required": ["any"], "properties": { "any": { "type": "array" } } },
+        { "required": ["all"], "properties": { "all": { "type": "array" } } }
+      ] },
+      "then": { "$ref": "#/$defs/Conditions" },
+      "else": { "$ref": "#/$defs/variableConditions" }
+    },
+    "Conditions": {
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "maxProperties": 1,
+      "properties": {
+        "any": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/ConditionGroup" }, "description": "OR: met when one of the groups is met." },
+        "all": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/VariableCondition" }, "description": "AND: met when every condition is met." }
+      }
+    },
+    "ConditionGroup": {
+      "type": "object",
+      "required": ["all"],
+      "additionalProperties": false,
+      "properties": {
+        "all": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/VariableCondition" }, "description": "AND: met when every condition is met." }
+      }
+    },
+    "VariableCondition": {
+      "type": "object",
+      "required": ["variable", "operator", "value"],
+      "additionalProperties": false,
+      "properties": {
+        "variable": { "type": "string", "pattern": "^([A-Za-z0-9_][A-Za-z0-9_-]*|(Dialogue\\.[A-Za-z0-9_][A-Za-z0-9_-]*\\.)?[A-Za-z0-9_][A-Za-z0-9_-]*\\.(stateData\\.played|options\\.[A-Za-z0-9_][A-Za-z0-9_-]*\\.selected))$", "description": "A Variable id, or <node>.stateData.played or <node>.options.<option>.selected, optionally after Dialogue.<id>." },
+        "operator": { "enum": ["==", "!=", "<", "<=", ">", ">="] },
+        "value": { "$ref": "#/$defs/value" }
       }
     },
     "variableConditions": {
@@ -203,7 +240,7 @@
           "additionalProperties": false,
           "properties": { "text": { "$ref": "#/$defs/text" } }
         },
-        "requires": { "$ref": "#/$defs/variableConditions", "description": "Option is shown only when every condition is met." },
+        "requires": { "$ref": "#/$defs/requires", "description": "Option is shown only when the conditions are met." },
         "set": { "$ref": "#/$defs/variableSets", "description": "Variables changed when the option is chosen." },
         "next": { "$ref": "#/$defs/nextOrBranches" }
       }

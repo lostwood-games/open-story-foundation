@@ -250,12 +250,13 @@ Option node_03_option_01 {
 |------------|-------|-----|
 | `text`     | Text. Required (OSF110). | `content.text` |
 | `next`     | As for nodes; omit to end the dialogue. | `next` |
-| `requires` | Value map of conditions; all must be met. | `requires` |
+| `requires` | Value map of conditions; all must be met. Several maps joined by `or` are alternatives. | `requires` |
 | `set`      | Value map of changes. | `set` |
 
 Option ids are unique in their node (OSF119). Every name in `set` and `requires` is a
-Variable (OSF200), named at most once in a map (OSF014), and every value has its type
-(OSF201).
+Variable (OSF200) and every value has its type (OSF201). A variable is named at most once
+in `set` (OSF014). `requires` may compare it several times, as in
+`{ gold >= 3, gold <= 10 }`, but the same condition twice is OSF014.
 
 A `Boolean` is set with `name: true` and required with `name: false`. Numbers can do more:
 
@@ -273,6 +274,34 @@ Option buy_bed {
 | `name += n`, `name -= n` | `set` | Add or subtract `n`, which is 0 or more (OSF206). | `{ operation: add, value: n }`, `{ operation: subtract, value: n }` |
 | `name: value` | `requires` | The variable equals the value. | the value |
 | `name != n`, `name < n`, `name <= n`, `name > n`, `name >= n` | `requires` | The comparison is true. | `{ operator: ">=", value: n }` |
+
+"Exactly 4 gold" is `requires: { gold: 4 }`.
+
+For alternatives, write several maps joined by `or`. Every entry inside one `{ }` must be
+met, and one met map is enough:
+
+```osf fragment
+Option buy_lantern {
+  text: "I will take the lantern."
+  requires:
+    { gold >= 3, gold <= 20, has_lantern: false }
+    or { god_mode: true }
+}
+```
+
+The maps can also stay on one line, as `requires: { gold >= 3 } or { god_mode: true }`.
+`osf fmt` keeps the line breaks you chose and indents maps written under `requires` one
+level. `osf convert -o osf` writes alternatives one map per line, as above. A conditional
+`next` takes the same form:
+
+```osf fragment
+next: dark requires
+  { happiness < 0 }
+  or { money: 0, god_mode: false }
+```
+
+In YAML and JSON a `requires` that repeats a variable or has alternatives is written in
+the full form with `all` and `any` (spec §2.5.1).
 
 A `requires` map can also check what was played: `rumours.stateData.played: true` once the
 node `rumours` was entered, `hub.options.room.selected: false` while option `room` of node `hub` was
@@ -437,10 +466,11 @@ document    = "Document" id "{" { "name" "=" string } "}" ;
 variable    = "Variable" id ":" ("Boolean" | "Number" | "UnsignedNumber") "=" value [ "{" "description" "=" string "}" ] ;
 dialogue    = "Dialogue" id "{" { "name" "=" string | "start" id | node } "}" ;
 node        = "Node" id "{" { text | "speaker" ":" id | next | "set" ":" sets | option } "}" ;
-option      = "Option" id "{" { text | next | "requires" ":" conditions | "set" ":" sets } "}" ;
+option      = "Option" id "{" { text | next | "requires" ":" requires | "set" ":" sets } "}" ;
 text        = ("text" | "title") ":" string ;          (title on nodes only)
-next        = "next" ":" ( id | "Dialogue" "." id ) [ "requires" conditions ] ;
+next        = "next" ":" ( id | "Dialogue" "." id ) [ "requires" requires ] ;
 sets        = "{" { id ( ":" value | ("+=" | "-=") number ) [ "," ] } "}" ;
+requires    = conditions { "or" conditions } ;
 conditions  = "{" { ( id ( ":" value | ("!=" | "<" | "<=" | ">" | ">=") number ) | played ":" bool ) [ "," ] } "}" ;
 played      = [ "Dialogue" "." id "." ] id "." ( "stateData" "." "played" | "options" "." id "." "selected" ) ;
 locale      = "Locale" id "{" { story | character | document | dialogue } "}" ;   (text fields only)

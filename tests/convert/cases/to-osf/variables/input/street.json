@@ -16,10 +16,31 @@
           {
             "to": "dark",
             "requires": {
-              "happiness": {
-                "operator": "<",
-                "value": 0
-              }
+              "any": [
+                {
+                  "all": [
+                    {
+                      "variable": "happiness",
+                      "operator": "<",
+                      "value": 0
+                    }
+                  ]
+                },
+                {
+                  "all": [
+                    {
+                      "variable": "money",
+                      "operator": "==",
+                      "value": 0
+                    },
+                    {
+                      "variable": "god_mode",
+                      "operator": "==",
+                      "value": false
+                    }
+                  ]
+                }
+              ]
             }
           },
           {

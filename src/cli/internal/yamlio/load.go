@@ -408,6 +408,111 @@ func (l *loader) values(n *yaml.Node, what string) ([]osf.Assign, osf.Comments) 
 	return out, l.comments(n)
 }
 
+// requires reads the conditions of an option or a branch. The short form is a
+// mapping of variable to value, all of which must be met. The full form names
+// the logic: `all` is a list of { variable, operator, value } that must all be
+// met, and `any` is a list of such `all` groups of which one is enough. The
+// groups after the first are returned as or.
+func (l *loader) requires(n *yaml.Node, what string) (first []osf.Assign, or [][]osf.Assign, c osf.Comments) {
+	if n == nil {
+		return nil, nil, osf.Comments{}
+	}
+	if !isConditions(n) {
+		first, c = l.values(n, what)
+		return first, nil, c
+	}
+	f := l.fields(n, what, shapes["Conditions"])
+	c = l.comments(n)
+	switch any, all := f["any"], f["all"]; {
+	case any != nil && all != nil:
+		l.errf(diag.WrongType, n, "%s takes any or all, not both; put the all group inside any", what)
+	case all != nil:
+		first = l.conditionGroup(all, what+".all")
+	case any != nil:
+		if len(any.Content) == 0 {
+			l.errf(diag.WrongType, any, "%s.any must be a non-empty list of { all: [...] } groups", what)
+		}
+		for i, item := range any.Content {
+			iw := what + ".any[" + strconv.Itoa(i) + "]"
+			g := l.fields(item, iw, shapes["ConditionGroup"])
+			if g == nil || g["all"] == nil {
+				continue
+			}
+			group := l.conditionGroup(g["all"], iw+".all")
+			if len(group) == 0 {
+				continue
+			}
+			if first == nil {
+				first = group
+			} else {
+				or = append(or, group)
+			}
+		}
+	}
+	return first, or, c
+}
+
+// isConditions reports whether a requires mapping is the full form: it has
+// an `any` or `all` key holding a list. A variable named any or all in the
+// short form holds a value or a mapping, never a list.
+func isConditions(n *yaml.Node) bool {
+	if n.Kind != yaml.MappingNode {
+		return false
+	}
+	for i := 0; i+1 < len(n.Content); i += 2 {
+		if k := n.Content[i].Value; (k == "any" || k == "all") && n.Content[i+1].Kind == yaml.SequenceNode {
+			return true
+		}
+	}
+	return false
+}
+
+// conditionGroup reads the list under `all`: conditions written as
+// { variable, operator, value }, where operator is == or a comparison.
+func (l *loader) conditionGroup(n *yaml.Node, what string) []osf.Assign {
+	if n.Kind != yaml.SequenceNode || len(n.Content) == 0 {
+		l.errf(diag.WrongType, n, "%s must be a non-empty list of { variable, operator, value }", what)
+		return nil
+	}
+	var out []osf.Assign
+	seen := map[string]bool{}
+	for i, item := range n.Content {
+		iw := what + "[" + strconv.Itoa(i) + "]"
+		f := l.fields(item, iw, shapes["VariableCondition"])
+		if f == nil || f["variable"] == nil || f["operator"] == nil || f["value"] == nil {
+			continue
+		}
+		name, ok := l.str(f["variable"], iw+".variable")
+		if !ok {
+			continue
+		}
+		opName, _ := l.str(f["operator"], iw+".operator")
+		op, known := osf.OpEqual, opName == "=="
+		for _, o := range osf.CompareOps {
+			if string(o) == opName {
+				op, known = o, true
+			}
+		}
+		if !known {
+			l.errf(diag.WrongType, f["operator"], "%s.operator must be one of ==, !=, <, <=, >, >=", iw)
+			continue
+		}
+		v, ok := l.value(f["value"], iw+".value")
+		if !ok {
+			continue
+		}
+		a := osf.Assign{Name: name, Op: op, Value: v, Pos: l.pos(f["variable"]), End: l.end(f["variable"])}
+		if cond := a.RequiresString(); seen[cond] {
+			l.errf(diag.DuplicateField, item, "%s: %s is already required", what, cond)
+			continue
+		} else {
+			seen[cond] = true
+		}
+		out = append(out, a)
+	}
+	return out
+}
+
 // resource reads one resource; docHead is the head comment of its document.
 func (l *loader) resource(root *yaml.Node, docHead string) {
 	f := l.fields(root, "resource", shapes["resource"])
@@ -627,7 +732,7 @@ func (l *loader) dialogue(data *yaml.Node, pos, end diag.Pos, block func(map[str
 							}
 							o := &osf.Option{ID: okey.Value, Pos: l.pos(okey), End: l.end(okey), IDPos: l.idPos(okey), Comments: l.comments(ovals[j])}
 							o.Next, o.Branches = next(of["next"], ow)
-							o.Requires, o.RequiresComments = l.values(of["requires"], ow+".requires")
+							o.Requires, o.RequiresOr, o.RequiresComments = l.requires(of["requires"], ow+".requires")
 							o.Set, o.SetComments = l.values(of["set"], ow+".set")
 							if c := of["content"]; c != nil {
 								cf := l.fields(c, ow+".content", shapes["OptionContent"])
@@ -678,7 +783,7 @@ func (l *loader) nexts(n *yaml.Node, what string) (*osf.Str, []*osf.Branch) {
 		if to == nil {
 			continue
 		}
-		requires, _ := l.values(f["requires"], iw+".requires")
+		requires, or, _ := l.requires(f["requires"], iw+".requires")
 		if len(requires) == 0 {
 			if i != len(n.Content)-1 {
 				l.errf(diag.BranchAfterFallback, item, "%s has no requires, so the branches after it are never taken; move it to the end of the list", iw)
@@ -688,7 +793,7 @@ func (l *loader) nexts(n *yaml.Node, what string) (*osf.Str, []*osf.Branch) {
 			next = to
 			continue
 		}
-		branches = append(branches, &osf.Branch{To: to, Requires: requires, Comments: c})
+		branches = append(branches, &osf.Branch{To: to, Requires: requires, RequiresOr: or, Comments: c})
 	}
 	return next, branches
 }

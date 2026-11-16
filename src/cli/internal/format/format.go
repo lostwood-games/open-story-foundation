@@ -7,6 +7,8 @@
 //   - at most one blank line in a row, none at the start of the file;
 //   - `=` aligned in runs of consecutive `name = value` lines;
 //   - trailing comments aligned in runs of consecutive lines;
+//   - the maps of a requires written under it, `{ ... }` then `or { ... }`
+//     lines, one level deeper than the requires;
 //   - """ text re-indented one level deeper than the line that opens it.
 package format
 
@@ -83,9 +85,20 @@ func split(toks []lang.Token) []*line {
 			if t.Kind == lang.RBrace {
 				d--
 			}
-			lines = append(lines, &line{depth: max(d, 0), blankBefore: prevEnd > 0 && t.Pos.Line > prevEnd+1})
+			nl := &line{depth: max(d, 0), blankBefore: prevEnd > 0 && t.Pos.Line > prevEnd+1}
+			if t.Kind == lang.LBrace && len(lines) > 0 && endsWithRequires(lines[len(lines)-1]) {
+				// The first map of a requires written under `requires:`.
+				nl.depth++
+				nl.blankBefore = false
+			}
+			lines = append(lines, nl)
 		}
 		l := lines[len(lines)-1]
+		if len(l.toks) == 1 && l.toks[0].Kind == lang.Ident && l.toks[0].Text == "or" && t.Kind == lang.LBrace {
+			// `or { ... }` on its own line is another map of the requires above.
+			l.depth++
+			l.blankBefore = false
+		}
 		l.toks = append(l.toks, t)
 		switch t.Kind {
 		case lang.LBrace:
@@ -96,6 +109,20 @@ func split(toks []lang.Token) []*line {
 		prevEnd = t.End.Line
 	}
 	return lines
+}
+
+// endsWithRequires reports whether a line stops after `requires:` or, on a
+// conditional next, after `requires`, so that its maps follow on the next lines.
+func endsWithRequires(l *line) bool {
+	toks := l.toks
+	if n := len(toks); n > 0 && toks[n-1].Kind == lang.LineComment {
+		toks = toks[:n-1]
+	}
+	if n := len(toks); n > 0 && toks[n-1].Kind == lang.Colon {
+		toks = toks[:n-1]
+	}
+	n := len(toks)
+	return n > 0 && toks[n-1].Kind == lang.Ident && toks[n-1].Text == "requires"
 }
 
 func render(l *line) {

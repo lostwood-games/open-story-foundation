@@ -2,7 +2,9 @@ Dialogue street {
   Node outside {
     text: "The street is empty."
     next: beggar requires { has_lantern: true }
-    next: dark requires { happiness < 0 }
+    next: dark requires
+      { happiness < 0 }
+      or { money: 0, god_mode: false }
     next: home
   }
 

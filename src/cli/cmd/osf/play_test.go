@@ -104,3 +104,37 @@ func TestPlayRefusesInvalidProject(t *testing.T) {
 		t.Errorf("exit %d; stdout:\n%s\nstderr:\n%s", code, stdout.String(), stderr.String())
 	}
 }
+
+// An option with `requires: { ... } or { ... }` shows when one group is met.
+func TestPlayRequiresOr(t *testing.T) {
+	story := func(gold, god string) string {
+		return baseStory + `
+Variable gold: Number = ` + gold + `
+Variable god_mode: Boolean = ` + god + `
+Dialogue d {
+  Node a {
+    text: "Shop"
+    Option buy { text: "Buy" requires: { gold >= 3, gold <= 20 } or { god_mode: true } }
+    Option leave { text: "Leave" }
+  }
+}`
+	}
+	tests := []struct {
+		name, gold, god string
+		shown           bool
+	}{
+		{"first group met", "5", "false", true},
+		{"second group met", "0", "true", true},
+		{"first group half met", "50", "false", false},
+		{"none met", "1", "false", false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			dir := osfProject(t, map[string]string{"s.osf": story(tt.gold, tt.god)})
+			out := playOutput(t, []string{"play", dir})
+			if got := strings.Contains(out, "Buy"); got != tt.shown {
+				t.Errorf("Buy shown = %v, want %v\n%s", got, tt.shown, out)
+			}
+		})
+	}
+}

@@ -292,7 +292,9 @@ func Project(p *osf.Project) Result {
 			}
 			for _, b := range n.Branches {
 				checkNext(where, n.Pos, b.To)
-				checkValues(where+": next "+b.To.Value+" requires", n.Pos, false, b.Requires, d.ID)
+				for _, g := range osf.Groups(b.Requires, b.RequiresOr) {
+					checkValues(where+": next "+b.To.Value+" requires", n.Pos, false, g, d.ID)
+				}
 			}
 			checkNext(where, n.Pos, n.Next)
 			checkValues(where+": set", n.Pos, true, n.Set, d.ID)
@@ -306,10 +308,14 @@ func Project(p *osf.Project) Result {
 				}
 				for _, b := range o.Branches {
 					checkNext(ow, o.Pos, b.To)
-					checkValues(ow+": next "+b.To.Value+" requires", o.Pos, false, b.Requires, d.ID)
+					for _, g := range osf.Groups(b.Requires, b.RequiresOr) {
+						checkValues(ow+": next "+b.To.Value+" requires", o.Pos, false, g, d.ID)
+					}
 				}
 				checkNext(ow, o.Pos, o.Next)
-				checkValues(ow+": requires", o.Pos, false, o.Requires, d.ID)
+				for _, g := range osf.Groups(o.Requires, o.RequiresOr) {
+					checkValues(ow+": requires", o.Pos, false, g, d.ID)
+				}
 				checkValues(ow+": set", o.Pos, true, o.Set, d.ID)
 			}
 		}

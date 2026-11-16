@@ -135,4 +135,21 @@ func valueMap(name string, as []osf.Assign) string {
 	return name + ": { " + strings.Join(parts, ", ") + " }"
 }
 
+// requires writes the groups of a requires without the field name: one map
+// as ` { ... }` on the same line, alternatives as a `{ ... }` line and an
+// `or { ... }` line each under it. It is empty when there are no conditions.
+func requires(first []osf.Assign, or [][]osf.Assign) string {
+	var parts []string
+	for _, g := range osf.Groups(first, or) {
+		parts = append(parts, strings.TrimPrefix(valueMap("requires", g), "requires: "))
+	}
+	switch len(parts) {
+	case 0:
+		return ""
+	case 1:
+		return " " + parts[0]
+	}
+	return "\n" + strings.Join(parts, "\nor ")
+}
+
 func typeName(t osf.VarType) string { return t.Name() }

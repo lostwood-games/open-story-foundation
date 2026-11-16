@@ -47,6 +47,36 @@ func TestFmt(t *testing.T) {
 	}
 }
 
+// Maps written on the lines under a requires are indented one level.
+func TestFmtOrLine(t *testing.T) {
+	src := "Dialogue d {\n" +
+		"  Node a {\n" +
+		"    text: \"Hi\"\n" +
+		"    Option o {\n" +
+		"      text: \"Go\"\n" +
+		"      requires:\n" +
+		"  { x >= 1 } or { y: true }\n" +
+		"\n" +
+		"  or   { z: true }\n" +
+		"      next: a requires  // why\n" +
+		"{ x: 2 }\n" +
+		"    }\n" +
+		"  }\n" +
+		"}\n"
+	want := strings.NewReplacer(
+		"\n  { x >= 1 }", "\n        { x >= 1 }",
+		"\n  or   { z: true }", "        or { z: true }",
+		"\n{ x: 2 }", "\n        { x: 2 }",
+	).Replace(src)
+	got, err := format.Source("t.osf", []byte(src))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(got) != want {
+		t.Errorf("got:\n%s\nwant:\n%s", got, want)
+	}
+}
+
 func TestFmtExampleIsStable(t *testing.T) {
 	files, _ := source.Files(osfExample, ".osf")
 	for _, f := range files {
