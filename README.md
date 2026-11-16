@@ -1,4 +1,5 @@
 # Open Story Format (OSF)
+[![Release](https://github.com/lostwood-games/open-story-foundation/actions/workflows/release.yml/badge.svg)](https://github.com/lostwood-games/open-story-foundation/actions/workflows/release.yml)
 [![Go Build, Test and Lint](https://github.com/lostwood-games/open-story-foundation/actions/workflows/go.yml/badge.svg)](https://github.com/lostwood-games/open-story-foundation/actions/workflows/go.yml)
 [![OSF Validate Check](https://github.com/lostwood-games/open-story-foundation/actions/workflows/validate.yml/badge.svg)](https://github.com/lostwood-games/open-story-foundation/actions/workflows/validate.yml)
 
