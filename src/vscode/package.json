@@ -2,8 +2,9 @@
   "name": "osf",
   "displayName": "Open Story Format (OSF)",
   "description": "Syntax highlighting and editing support for .osf files, the Open Story Format language.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "publisher": "lostwood",
+  "icon": "icons/icon.png",
   "license": "MIT",
   "homepage": "https://openstoryfoundation.com",
   "repository": {
@@ -39,7 +40,11 @@
         "extensions": [
           ".osf"
         ],
-        "configuration": "./language-configuration.json"
+        "configuration": "./language-configuration.json",
+        "icon": {
+          "light": "./icons/osf-light.svg",
+          "dark": "./icons/osf-dark.svg"
+        }
       }
     ],
     "grammars": [
@@ -62,7 +67,6 @@
   },
   "devDependencies": {
     "@vscode/vsce": "^4.1.1",
-    "ovsx": "^1.4.0",
     "vscode-oniguruma": "^1.7.0",
     "vscode-textmate": "^7.0.4",
     "vscode-tmgrammar-test": "^0.1.3"

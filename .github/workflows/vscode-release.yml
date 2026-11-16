@@ -12,7 +12,7 @@ on:
 
 permissions:
   contents: write # create the GitHub release
-  id-token: write # trusted publishing to the Marketplace and Open VSX
+  id-token: write # trusted publishing to the Marketplace
 
 concurrency:
   group: vscode-release
@@ -59,27 +59,11 @@ jobs:
           name: osf-vsix
           path: src/vscode/osf.vsix
           if-no-files-found: error
+      # Trusted publishing (GitHub OIDC): no token is stored. A version already
+      # published is skipped, so a failed release can be re-run.
       - name: Publish to the Visual Studio Marketplace
         if: env.PUBLISH == 'true'
-        env:
-          VSCE_PAT: ${{ secrets.VSCE_PAT }}
-        run: |
-          if [ -n "$VSCE_PAT" ]; then
-            npx vsce publish --packagePath osf.vsix
-          else
-            npx vsce publish --oidc --packagePath osf.vsix
-          fi
-      - name: Publish to Open VSX
-        if: env.PUBLISH == 'true'
-        env:
-          OVSX_PAT: ${{ secrets.OVSX_PAT }}
-        run: |
-          if [ -n "$OVSX_PAT" ]; then
-            npx ovsx publish osf.vsix
-          else
-            unset OVSX_PAT
-            npx ovsx publish --trusted-publishing osf.vsix
-          fi
+        run: npx vsce publish --oidc --skip-duplicate --packagePath osf.vsix
       - name: Create the GitHub release
         if: env.PUBLISH == 'true'
         env:
@@ -88,6 +72,6 @@ jobs:
           gh release create "$GITHUB_REF_NAME" osf.vsix \
             --repo "$GITHUB_REPOSITORY" \
             --title "VS Code extension ${GITHUB_REF_NAME#osf-vscode-v}" \
-            --notes "Install from the Visual Studio Marketplace or Open VSX, or with \`code --install-extension osf.vsix\`." \
+            --notes "Install from the Visual Studio Marketplace, or with \`code --install-extension osf.vsix\`." \
             --verify-tag \
             --latest=false
