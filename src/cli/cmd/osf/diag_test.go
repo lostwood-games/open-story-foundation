@@ -150,6 +150,11 @@ var diagCases = []diagCase{
 	{name: "bad-text-reference-field-variable", files: story("\nDialogue intro {\n  Node greet { text: \"Brave: {{ Variable.brave.name }}\" }\n}\n"), want: "a Variable reference takes no field"},
 	{name: "wrong-type", files: yamlProject(map[string]string{"intro.yaml": "apiVersion: dialogue/v1\nkind: Dialogue\ndata:\n  id: intro\n  startNode: greet\n  nodes: [greet]\n"}), want: "nodes must be a mapping"},
 	{name: "unknown-kind", files: yamlProject(map[string]string{"monster.yaml": "apiVersion: story/v1\nkind: Monster\ndata:\n  id: m\n"}), want: `kind "Monster" is not part of story/v1`},
+	{name: "branch-after-fallback", files: yamlProject(map[string]string{"intro.yaml": yamlIntro + "      next:\n        - to: greet\n        - to: greet\n          requires: { brave: true }\n", "brave.yaml": "apiVersion: story/v1\nkind: Variable\ndata:\n  id: brave\n  type: boolean\n  default: false\n"}), want: "next[0] has no requires, so the branches after it are never taken"},
+	{name: "next-and-options-branch", files: story("\nDialogue intro {\n  Node greet { text: \"Hi\" next: leave requires { brave: true } Option go { text: \"Go\" } }\n  Node leave { text: \"Bye\" }\n}\n"), want: "has both next and options"},
+	{name: "unknown-node-branch", files: story("\nDialogue intro {\n  Node greet { text: \"Hi\" next: leav requires { brave: true } next: leave }\n  Node leave { text: \"Bye\" }\n}\n"), want: `next: node "leav" does not exist`, hint: "leave"},
+	{name: "unknown-variable-branch", files: story("\nDialogue intro {\n  Node greet { text: \"Hi\" next: leave requires { brav: true } }\n  Node leave { text: \"Bye\" }\n}\n"), want: `next leave requires: unknown variable "brav"`, hint: "brave"},
+	{name: "duplicate-field-next", files: story("\nDialogue intro {\n  Node greet { text: \"Hi\" next: leave next: leave }\n  Node leave { text: \"Bye\" }\n}\n"), want: "next is already set on line"},
 	{name: "duplicate-plugin", files: yamlProject(map[string]string{"plugins/plugins.yaml": "apiVersion: plugins/v1\nkind: Configuration\ndata:\n  plugins: [i18n/v1, i18n/v1]\n"}), want: "plugin i18n/v1 is listed twice"},
 
 	// Variables and values.

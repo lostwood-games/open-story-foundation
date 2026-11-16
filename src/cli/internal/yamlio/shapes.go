@@ -17,6 +17,7 @@ var shapes = map[string]shape{
 	"Node":                 {[]string{"content", "set", "next", "options"}, []string{"content"}},
 	"Content":              {[]string{"speaker", "title", "text"}, nil},
 	"Option":               {[]string{"content", "requires", "set", "next"}, []string{"content"}},
+	"Branch":               {[]string{"to", "requires"}, []string{"to"}},
 	"OptionContent":        {[]string{"text"}, nil},
 	"SetOperation":         {[]string{"operation", "value"}, []string{"operation", "value"}},
 	"Condition":            {[]string{"operator", "value"}, []string{"operator", "value"}},

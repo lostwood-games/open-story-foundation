@@ -706,6 +706,24 @@ func (p *parser) target() *osf.Str {
 	return &id
 }
 
+// nextField parses `next: target`, which may be written once, or
+// `next: target requires { ... }`, a branch, which may be written any number
+// of times and is tried in the order written.
+func (p *parser) nextField(t Token, seen fields, next **osf.Str, branches *[]*osf.Branch) {
+	p.op(t, Colon)
+	to := p.target()
+	if r := p.peek(); r.Kind == Ident && r.Text == "requires" {
+		p.next()
+		b := &osf.Branch{To: to, Requires: p.valueMap(r)}
+		*branches = append(*branches, b)
+		p.done(&b.Comments)
+		return
+	}
+	seen.once(p, t)
+	*next = to
+	p.done(&to.Comments)
+}
+
 func (p *parser) node(kw Token, inLocale bool) *osf.Node {
 	id := p.id("a node id")
 	n := &osf.Node{ID: id.Value, Pos: kw.Pos, End: id.End, IDPos: id.Pos, Comments: osf.Comments{Head: p.head}}
@@ -735,10 +753,7 @@ func (p *parser) node(kw Token, inLocale bool) *osf.Node {
 			p.done(&n.Speaker.Comments)
 		case "next":
 			p.notInLocale(t, inLocale)
-			seen.once(p, t)
-			p.op(t, Colon)
-			n.Next = p.target()
-			p.done(&n.Next.Comments)
+			p.nextField(t, seen, &n.Next, &n.Branches)
 		case "set":
 			p.notInLocale(t, inLocale)
 			seen.once(p, t)
@@ -780,10 +795,7 @@ func (p *parser) option(kw Token, inLocale bool) *osf.Option {
 			p.done(&o.Text.Comments)
 		case "next":
 			p.notInLocale(t, inLocale)
-			seen.once(p, t)
-			p.op(t, Colon)
-			o.Next = p.target()
-			p.done(&o.Next.Comments)
+			p.nextField(t, seen, &o.Next, &o.Branches)
 		case "requires", "set":
 			p.notInLocale(t, inLocale)
 			seen.once(p, t)
