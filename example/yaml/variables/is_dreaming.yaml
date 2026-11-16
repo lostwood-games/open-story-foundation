@@ -6,3 +6,4 @@ data:
   id: is_dreaming
   type: boolean
   default: false
+  description: True once the player says they are dreaming.

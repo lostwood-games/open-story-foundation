@@ -122,7 +122,8 @@
       "properties": {
         "id": { "$ref": "#/$defs/id" },
         "type": { "enum": ["boolean", "number", "unsignedNumber"] },
-        "default": { "$ref": "#/$defs/value" }
+        "default": { "$ref": "#/$defs/value" },
+        "description": { "type": "string", "description": "A note for writers and programmers: what the variable tracks. Not shown to players, not translated." }
       },
       "allOf": [
         { "if": { "properties": { "type": { "const": "boolean" } } }, "then": { "properties": { "default": { "type": "boolean" } } } },

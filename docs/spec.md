@@ -103,8 +103,8 @@ data:
 
 ### 2.4 `Variable`
 
-Story state that options can require and nodes or options can set. All three fields are
-required.
+Story state that options can require and nodes or options can set. `id`, `type` and
+`default` are required.
 
 ```yaml
 apiVersion: story/v1
@@ -113,7 +113,11 @@ data:
   id: is_dreaming
   type: boolean           # boolean | number | unsignedNumber
   default: false          # must match type
+  description: True while the player believes they are asleep.   # optional
 ```
+
+`description` is a note for writers and programmers about what the variable tracks. It
+is not shown to players, is not translated and takes no `{{ }}` references.
 
 | type | holds | example `default` |
 |------|-------|-------------------|

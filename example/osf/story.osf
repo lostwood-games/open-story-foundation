@@ -11,4 +11,4 @@ I18n {
   Locale Jpn "Japanese"                    // missing translations fall back to Eng
 }
 
-Variable is_dreaming: Boolean = false
+Variable is_dreaming: Boolean = false { description = "True once the player says they are dreaming." }
