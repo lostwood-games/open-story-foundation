@@ -1,0 +1,10 @@
+# osf play
+== Dialogue 01_intro_scene
+...: Where am I?
+Total Darkness surrounds you.
+You: What is it all about?
+Am I dreaming?
+  1. Yes, you are.
+  2. No. Fool
+> 
+(stopped: 2 options pending)

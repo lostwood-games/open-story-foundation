@@ -1,0 +1,13 @@
+# osf play -dialogue 01_intro_scene -choices 2
+== Dialogue 01_intro_scene
+...: Where am I?
+Total Darkness surrounds you.
+You: What is it all about?
+Am I dreaming?
+  1. Yes, you are.
+  2. No. Fool
+> 2
+== Dialogue 02_shadows_speak
+Stranger: Hello
+Stranger: You are not dreaming. Not anymore.
+== End

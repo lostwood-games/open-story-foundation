@@ -1,0 +1,12 @@
+# osf play -locale Rus -choices 1
+== Dialogue 01_intro_scene
+...: Где я?
+Тебя окружает полная тьма.
+Ты: О чём всё это?
+Я сплю?
+  1. Да, спишь.
+  2. Нет. Глупец
+> 1
+  [set is_dreaming = true]
+Странно
+== End
