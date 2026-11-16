@@ -42,8 +42,16 @@ data:
               value: 1
           content:
             text: Give a coin
+        ask:
+          next: story
+          content:
+            text: Ask about the street
         walk:
           requires:
             beggar.options.give.selected: false
           content:
             text: Walk past
+    story:
+      next: beggar.options # back to the choices, without the greeting
+      content:
+        text: Nobody comes here after dark.

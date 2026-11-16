@@ -82,9 +82,19 @@ Dialogue street {
       set: { gold -= 1 }
     }
 
+    Option ask {
+      text: "Ask about the street"
+      next: story
+    }
+
     Option walk {
       text: "Walk past"
       requires: { beggar.options.give.selected: false }
     }
+  }
+
+  Node story {
+    text: "Nobody comes here after dark."
+    next: beggar.options  // back to the choices, without the greeting
   }
 }

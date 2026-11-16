@@ -749,12 +749,22 @@ func (p *parser) dialogue(kw Token, inLocale bool) *osf.Dialogue {
 	return d
 }
 
-// target parses the value of `next`: a node id or Dialogue.<id>.
+// target parses the value of `next`: a node id, <node>.options or
+// Dialogue.<id>.
 func (p *parser) target() *osf.Str {
 	if t := p.peek(); t.Kind == Ident && t.Text == "Dialogue" {
 		return p.ref("Dialogue")
 	}
 	id := p.id("a node id or Dialogue.<id>")
+	if p.peek().Kind == Dot {
+		p.next()
+		t := p.next()
+		if t.Kind != Ident || t.Text != "options" {
+			p.found(diag.BadReference, t, "expected options after %s., to go back to its options; found %s", id.Value, describe(t))
+		}
+		id.Value += ".options"
+		id.End = t.End
+	}
 	return &id
 }
 

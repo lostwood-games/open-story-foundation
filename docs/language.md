@@ -218,7 +218,7 @@ Node node_01 {
 | `text`     | Text. Required (OSF110). | `content.text` |
 | `speaker`  | A Character id, written bare (OSF021 for `Character.<id>`). Omit for narration. | `content.speaker` (`Character.<id>`) |
 | `title`    | Text: the shown speaker name, overriding the speaker Character's name. | `content.title` |
-| `next`     | A node id in this dialogue, or `Dialogue.<id>` to jump to another dialogue's start node. Can branch on variables (§5.3). | `next` |
+| `next`     | A node id in this dialogue, `<node>.options` to offer that node's options again, or `Dialogue.<id>` to jump to another dialogue's start node. Can branch on variables (§5.3). | `next` |
 | `set`      | Value map (§5.2), applied when the node is reached. | `set` |
 | `Option`   | A player choice (§5.2). Repeatable. | `options` |
 
@@ -338,6 +338,17 @@ Branches are tried in the order they are written, and the first whose conditions
 met is followed. The plain `next` is the fallback wherever it is written; without one, the
 dialogue ends when no branch matches. The conditions are those of an option's `requires`
 (§5.2). This is `next` as a list of `{ to, requires }` in YAML (spec §2.5.2).
+
+`next: hub.options` goes back to the options of node `hub` without showing its line or
+applying its `set` again, for a question hub where each answer returns to the questions
+(spec §2.5.4). The node must have options (OSF128).
+
+```osf fragment
+Node rumours {
+  text: "They say the cellar is haunted."
+  next: hub.options  // back to the questions, without the greeting
+}
+```
 
 ### 5.4 Playing
 
@@ -468,7 +479,7 @@ dialogue    = "Dialogue" id "{" { "name" "=" string | "start" id | node } "}" ;
 node        = "Node" id "{" { text | "speaker" ":" id | next | "set" ":" sets | option } "}" ;
 option      = "Option" id "{" { text | next | "requires" ":" requires | "set" ":" sets } "}" ;
 text        = ("text" | "title") ":" string ;          (title on nodes only)
-next        = "next" ":" ( id | "Dialogue" "." id ) [ "requires" requires ] ;
+next        = "next" ":" ( id [ "." "options" ] | "Dialogue" "." id ) [ "requires" requires ] ;
 sets        = "{" { id ( ":" value | ("+=" | "-=") number ) [ "," ] } "}" ;
 requires    = conditions { "or" conditions } ;
 conditions  = "{" { ( id ( ":" value | ("!=" | "<" | "<=" | ">" | ">=") number ) | played ":" bool ) [ "," ] } "}" ;

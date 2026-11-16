@@ -71,6 +71,7 @@ This file is generated from `src/cli/internal/diag/rules.go`; regenerate it with
 | OSF125 | branch-after-fallback | error | A YAML `next` list entry without `requires` that is not the last one, so the entries after it are never taken. |
 | OSF126 | unknown-option | error | A selected condition names an option the node does not have. |
 | OSF127 | bad-history-condition | error | A played or selected condition that is not `<node>.stateData.played` or `<node>.options.<option>.selected` (optionally after `Dialogue.<id>.`), that is in `set`, or that is compared with something other than true or false. |
+| OSF128 | no-options-to-return | error | `next: <node>.options` names a node that has no options. |
 | OSF200 | unknown-variable | error | `set` or `requires` names a Variable that does not exist. |
 | OSF201 | wrong-value-type | error | A `set` or `requires` value of a different type than the Variable, or a negative value set on an UnsignedNumber. |
 | OSF202 | bad-default | error | A Variable default of a different type than the Variable, or a negative default for an UnsignedNumber. |
