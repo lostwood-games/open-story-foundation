@@ -69,6 +69,8 @@ osf validate             # check the project in the current folder
 osf convert -o osf       # write a JSON or YAML project as .osf files for writers
 osf convert              # write a project as JSON for a game to load
 osf fmt                  # put .osf files in the standard formatting
+osf play                 # play the story in the terminal
+osf play -coverage       # walk every path and report dead ends
 ```
 
 A project is a folder of `.osf` files, or of JSON or YAML resources. Every command takes

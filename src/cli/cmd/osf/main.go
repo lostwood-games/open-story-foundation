@@ -18,6 +18,7 @@ type command struct {
 var commands = []command{
 	{"convert", "Convert a project between .osf, JSON and YAML", runConvert},
 	{"fmt", "Rewrite .osf files in the standard formatting", runFmt},
+	{"play", "Play a dialogue in the terminal, or check every path", runPlay},
 	{"validate", "Check a project against the Open Story spec", runValidate},
 	{"version", "Print the osf version", runVersion},
 }
