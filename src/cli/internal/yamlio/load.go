@@ -470,6 +470,7 @@ func (l *loader) resource(root *yaml.Node, docHead string) {
 			l.errf(diag.UnknownVariableType, d["type"], "unknown variable type %q; expected boolean, number or unsignedNumber", t)
 			return
 		}
+		v.Description = l.text(d["description"], "description")
 		var ok bool
 		if v.Default, ok = l.value(d["default"], "default"); ok {
 			l.p.Variables = append(l.p.Variables, v)

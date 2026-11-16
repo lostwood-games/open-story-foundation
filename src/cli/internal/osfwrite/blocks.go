@@ -114,7 +114,11 @@ func document(w *writer, d *osf.Document) {
 }
 
 func variable(w *writer, v *osf.Variable) {
-	w.addc("Variable "+v.ID+": "+typeName(v.Type)+" = "+value(v.Default), v.Comments)
+	line := "Variable " + v.ID + ": " + typeName(v.Type) + " = " + value(v.Default)
+	if v.Description != nil {
+		line += " { description = " + quote(v.Description.Value) + " }"
+	}
+	w.addc(line, v.Comments)
 }
 
 // dialogue writes a Dialogue block; inLocale leaves out everything but text

@@ -645,6 +645,19 @@ func (p *parser) variable(kw Token) *osf.Variable {
 	}
 	p.expect(Equals, "after the variable type")
 	v.Default = p.value(v.ID)
+	if p.peek().Kind == LBrace {
+		seen := fields{}
+		p.block(kw, &v.Comments, func(t Token) {
+			if t.Text != "description" {
+				p.unknown(t, "Variable", "description")
+			}
+			seen.once(p, t)
+			p.op(t, Equals)
+			v.Description = p.str(t)
+			p.done(&v.Description.Comments)
+		})
+		p.last = &v.Comments
+	}
 	return v
 }
 
