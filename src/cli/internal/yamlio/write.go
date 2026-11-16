@@ -215,7 +215,7 @@ func dialogue(d *osf.Dialogue) *yaml.Node {
 	for _, n := range d.Nodes {
 		node := mapping()
 		addValues(node, "set", n.Set, n.SetComments)
-		addText(node, "next", n.Next)
+		addNext(node, n.Branches, n.Next)
 		content := mapping()
 		addText(content, "speaker", n.Speaker)
 		addText(content, "title", n.Title)
@@ -227,7 +227,7 @@ func dialogue(d *osf.Dialogue) *yaml.Node {
 				opt := mapping()
 				addValues(opt, "requires", o.Requires, o.RequiresComments)
 				addValues(opt, "set", o.Set, o.SetComments)
-				addText(opt, "next", o.Next)
+				addNext(opt, o.Branches, o.Next)
 				content := mapping()
 				addText(content, "text", o.Text)
 				opt.Content = append(opt.Content, str("content"), content)
@@ -279,6 +279,30 @@ func addText(m *yaml.Node, key string, s *osf.Str) {
 		comment(k, v, s.Comments)
 		m.Content = append(m.Content, k, v)
 	}
+}
+
+// addNext writes next as a node id, or as a list of { to, requires } with the
+// plain next last when there are branches.
+func addNext(m *yaml.Node, branches []*osf.Branch, next *osf.Str) {
+	if len(branches) == 0 {
+		addText(m, "next", next)
+		return
+	}
+	seq := &yaml.Node{Kind: yaml.SequenceNode}
+	item := func(to string, requires []osf.Assign, c osf.Comments) {
+		it := mapping("to", str(to))
+		addValues(it, "requires", requires, osf.Comments{})
+		it.HeadComment = yamlComment(trimBlank(c.Head))
+		it.Content[1].LineComment = lineComment(c.Trail)
+		seq.Content = append(seq.Content, it)
+	}
+	for _, b := range branches {
+		item(b.To.Value, b.Requires, b.Comments)
+	}
+	if next != nil {
+		item(next.Value, nil, next.Comments)
+	}
+	m.Content = append(m.Content, str("next"), seq)
 }
 
 func addValues(m *yaml.Node, key string, values []osf.Assign, c osf.Comments) {

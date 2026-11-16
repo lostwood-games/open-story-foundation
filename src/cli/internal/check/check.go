@@ -216,7 +216,7 @@ func Project(p *osf.Project) Result {
 			if n.Text == nil {
 				r.at(diag.MissingField, span(n.Pos, n.End), n.Pos, "%s has no text", where)
 			}
-			if n.Next != nil && len(n.Options) > 0 {
+			if (n.Next != nil || len(n.Branches) > 0) && len(n.Options) > 0 {
 				r.at(diag.NextAndOptions, span(n.Pos, n.End), n.Pos, "%s has both next and options; use one or the other", where)
 			}
 			if n.Speaker != nil {
@@ -224,6 +224,10 @@ func Project(p *osf.Project) Result {
 					id := strings.TrimPrefix(n.Speaker.Value, "Character.")
 					r.suggest(diag.UnknownSpeaker, n.Speaker, n.Pos, id, ids["Character"], "%s: speaker: unknown character %q", where, id)
 				}
+			}
+			for _, b := range n.Branches {
+				checkNext(where, n.Pos, b.To)
+				checkValues(where+": next "+b.To.Value+" requires", n.Pos, false, b.Requires)
 			}
 			checkNext(where, n.Pos, n.Next)
 			checkValues(where+": set", n.Pos, true, n.Set)
@@ -234,6 +238,10 @@ func Project(p *osf.Project) Result {
 				}
 				if o.Text == nil {
 					r.at(diag.MissingField, span(o.Pos, o.End), o.Pos, "%s has no text", ow)
+				}
+				for _, b := range o.Branches {
+					checkNext(ow, o.Pos, b.To)
+					checkValues(ow+": next "+b.To.Value+" requires", o.Pos, false, b.Requires)
 				}
 				checkNext(ow, o.Pos, o.Next)
 				checkValues(ow+": requires", o.Pos, false, o.Requires)

@@ -202,7 +202,7 @@ reaches and that is not the start node is warning OSF900.
 
 ### 5.1 Nodes
 
-A node is a list of `field: value` lines, in any order, plus its options:
+A node is a list of `field: value` lines, in any order (branching `next` lines keep theirs, §5.3), plus its options:
 
 ```osf fragment
 Node node_01 {
@@ -218,12 +218,12 @@ Node node_01 {
 | `text`     | Text. Required (OSF110). | `content.text` |
 | `speaker`  | A Character id, written bare (OSF021 for `Character.<id>`). Omit for narration. | `content.speaker` (`Character.<id>`) |
 | `title`    | Text: the shown speaker name, overriding the speaker Character's name. | `content.title` |
-| `next`     | A node id in this dialogue, or `Dialogue.<id>` to jump to another dialogue's start node. | `next` |
+| `next`     | A node id in this dialogue, or `Dialogue.<id>` to jump to another dialogue's start node. Can branch on variables (§5.3). | `next` |
 | `set`      | Value map (§5.2), applied when the node is reached. | `set` |
 | `Option`   | A player choice (§5.2). Repeatable. | `options` |
 
 A node has `next` or options, not both (OSF117). A node with neither ends the dialogue.
-Each field appears at most once (OSF014), and node ids are unique in their dialogue
+Each field appears at most once (OSF014), except branching `next` lines (§5.3), and node ids are unique in their dialogue
 (OSF118). `requires` belongs to options only (OSF012).
 
 ```osf invalid
@@ -278,7 +278,26 @@ Operations and comparisons are for `Number` and `UnsignedNumber` only (OSF205 on
 `Boolean`). An `UnsignedNumber` never goes below 0: subtracting more than it holds leaves
 0, and setting it to a negative value is OSF201. A result stays within 32 bits.
 
-### 5.3 Playing
+### 5.3 Conditional next
+
+`next` followed by `requires` and a value map of conditions is a branch. A node or an
+option can have any number of branches and at most one plain `next`:
+
+```osf fragment
+Node guard {
+  text: "The guard looks you over."
+  next: rich requires { gold >= 10 }       // tried first
+  next: friend requires { trusted: true }  // then this one
+  next: away                               // when no branch matches
+}
+```
+
+Branches are tried in the order they are written, and the first whose conditions are all
+met is followed. The plain `next` is the fallback wherever it is written; without one, the
+dialogue ends when no branch matches. The conditions are those of an option's `requires`
+(§5.2). This is `next` as a list of `{ to, requires }` in YAML (spec §2.5.2).
+
+### 5.4 Playing
 
 How a dialogue runs (start node, `set`, `requires`, `next`, the end) is defined once for
 both formats in [spec §5](spec.md#5-playing-a-dialogue); `osf play` and the
@@ -407,7 +426,7 @@ dialogue    = "Dialogue" id "{" { "name" "=" string | "start" id | node } "}" ;
 node        = "Node" id "{" { text | "speaker" ":" id | next | "set" ":" sets | option } "}" ;
 option      = "Option" id "{" { text | next | "requires" ":" conditions | "set" ":" sets } "}" ;
 text        = ("text" | "title") ":" string ;          (title on nodes only)
-next        = "next" ":" ( id | "Dialogue" "." id ) ;
+next        = "next" ":" ( id | "Dialogue" "." id ) [ "requires" conditions ] ;
 sets        = "{" { id ( ":" value | ("+=" | "-=") number ) [ "," ] } "}" ;
 conditions  = "{" { id ( ":" value | ("!=" | "<" | "<=" | ">" | ">=") number ) [ "," ] } "}" ;
 locale      = "Locale" id "{" { story | character | document | dialogue } "}" ;   (text fields only)
@@ -434,7 +453,7 @@ These were open in earlier drafts.
 
 ## 11. Canonical layout
 
-Field order and line breaks never change meaning (§1), and `osf fmt` keeps the line
+Field order and line breaks never change meaning (§1), apart from the order of branching `next` lines (§5.3), and `osf fmt` keeps the line
 breaks you chose. `osf fmt` normalises the rest: two spaces per block level, one space
 between tokens, at most one blank line in a row, `=` aligned in runs of consecutive
 `name = value` lines, trailing comments aligned in runs of consecutive lines, and `"""`
@@ -458,8 +477,9 @@ byte. The example projects use it.
 - `Dialogue`: `name`, then `start` only when the start node is not the first node, then
   `Node` blocks separated by one blank line. No blank line after an opening brace; a
   blank line between the field lines and the first nested block.
-- `Node`: `speaker`, `title`, `text`, `set`, `next`, then `Option` blocks, each preceded
-  by a blank line. `Option`: `text`, `requires`, `set`, `next`. Value maps are written
+- `Node`: `speaker`, `title`, `text`, `set`, the branching `next` lines in order, the
+  plain `next`, then `Option` blocks, each preceded
+  by a blank line. `Option`: `text`, `requires`, `set`, then `next` lines as for a node. Value maps are written
   `{ a: 1, b: true, c += 2 }`, with commas.
 - Text with line breaks is written as a `"""` block, indented one level deeper than the
   field, when it ends with a line break and the block would read back unchanged (no

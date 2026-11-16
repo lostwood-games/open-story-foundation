@@ -19,7 +19,8 @@ Document lantern {
 }
 
 Variable has_lantern: Boolean = false
-Variable mood: Number = -1
+Variable money: Number = 10
+Variable happiness: Number = -1
 Variable gold: UnsignedNumber = 5 { description = "Coins the player carries." }
 
 Dialogue counter {
@@ -30,14 +31,14 @@ Dialogue counter {
     Option buy {
       text: "Buy it"
       requires: { gold >= 3, has_lantern: false }
-      set: { gold -= 3, has_lantern: true, mood += 1 }
+      set: { gold -= 3, has_lantern: true, happiness += 1 }
       next: thanks
     }
 
     Option leave {
       text: "Leave"
-      requires: { mood != 2 }
-      set: { mood: 0 }
+      requires: { money != 2 }
+      set: { money: 0 }
       next: Dialogue.street
     }
   }
@@ -54,5 +55,20 @@ Dialogue counter {
 Dialogue street {
   Node outside {
     text: "The street is empty."
+    next: beggar requires { has_lantern: true }  // only seen in the light
+    next: dark requires { happiness < 0 }
+    next: home
+  }
+
+  Node dark {
+    text: "The empty street makes you feel even worse."
+  }
+
+  Node home {
+    text: "You walk home."
+  }
+
+  Node beggar {
+    text: "A beggar steps into the light of your lantern."
   }
 }

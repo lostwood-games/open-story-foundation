@@ -53,6 +53,7 @@ var (
 	WrongType             = rule("wrong-type")
 	UnknownKind           = rule("unknown-kind")
 	DuplicatePlugin       = rule("duplicate-plugin")
+	BranchAfterFallback   = rule("branch-after-fallback")
 
 	UnknownVariable     = rule("unknown-variable")
 	WrongValueType      = rule("wrong-value-type")

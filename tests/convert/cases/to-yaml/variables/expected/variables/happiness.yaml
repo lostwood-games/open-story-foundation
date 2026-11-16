@@ -3,6 +3,6 @@
 apiVersion: story/v1
 kind: Variable
 data:
-  id: mood
+  id: happiness
   type: number
   default: -1

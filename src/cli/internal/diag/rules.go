@@ -80,6 +80,7 @@ var Rules = []Rule{
 	{"OSF122", "wrong-type", "A YAML value of the wrong shape: a string where a mapping is expected, and so on.", Error},
 	{"OSF123", "unknown-kind", "A YAML kind that is not part of its apiVersion.", Error},
 	{"OSF124", "duplicate-plugin", "A plugin listed twice in the plugins Configuration.", Error},
+	{"OSF125", "branch-after-fallback", "A YAML `next` list entry without `requires` that is not the last one, so the entries after it are never taken.", Error},
 
 	// Variables and values.
 	{"OSF200", "unknown-variable", "`set` or `requires` names a Variable that does not exist.", Error},

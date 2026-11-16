@@ -1,5 +1,20 @@
 Dialogue street {
   Node outside {
     text: "The street is empty."
+    next: beggar requires { has_lantern: true }
+    next: dark requires { happiness < 0 }
+    next: home
+  }
+
+  Node dark {
+    text: "The empty street makes you feel even worse."
+  }
+
+  Node home {
+    text: "You walk home."
+  }
+
+  Node beggar {
+    text: "A beggar steps into the light of your lantern."
   }
 }
