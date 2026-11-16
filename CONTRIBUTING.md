@@ -33,8 +33,8 @@ The VS Code extension in `src/vscode` is released on its own, with a tag
 `osf-vscode-v<version>` that matches `version` in `src/vscode/package.json`:
 
 ```sh
-git tag osf-vscode-v0.1.0
-git push origin osf-vscode-v0.1.0
+git tag osf-vscode-v1.0.0
+git push origin osf-vscode-v1.0.0
 ```
 
 The `VS Code extension release` workflow tests and packages it, publishes it to the
