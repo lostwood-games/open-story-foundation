@@ -424,8 +424,9 @@ func (p *parser) valueMap(field Token) []osf.Assign {
 }
 
 // entryName parses the name of a value map entry: a variable, or in requires
-// a played or selected condition, a dotted path such as node_02.played,
-// node_02.ask.selected or Dialogue.intro.greet.played. The checker validates
+// a played or selected condition, a dotted path such as
+// node_02.stateData.played, node_02.options.ask.selected or
+// Dialogue.intro.greet.stateData.played. The checker validates
 // the path.
 func (p *parser) entryName(field Token) osf.Str {
 	var name osf.Str
@@ -440,7 +441,7 @@ func (p *parser) entryName(field Token) osf.Str {
 		if field.Text != "requires" {
 			p.fail(diag.UnexpectedToken, dot, "%s takes variable names; played and selected conditions belong in requires", field.Text)
 		}
-		part := p.id("a node or option id, played or selected")
+		part := p.id("a node or option id, stateData, options, played or selected")
 		name.Value += "." + part.Value
 		name.End = part.End
 	}

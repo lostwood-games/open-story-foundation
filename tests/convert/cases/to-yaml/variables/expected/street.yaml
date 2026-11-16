@@ -31,8 +31,8 @@ data:
       options:
         give:
           requires:
-            outside.played: true
-            Dialogue.counter.offer.buy.selected: true
+            outside.stateData.played: true
+            Dialogue.counter.offer.options.buy.selected: true
           set:
             gold:
               operation: subtract
@@ -41,6 +41,6 @@ data:
             text: Give a coin
         walk:
           requires:
-            beggar.give.selected: false
+            beggar.options.give.selected: false
           content:
             text: Walk past

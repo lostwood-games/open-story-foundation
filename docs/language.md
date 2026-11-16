@@ -274,15 +274,15 @@ Option buy_bed {
 | `name: value` | `requires` | The variable equals the value. | the value |
 | `name != n`, `name < n`, `name <= n`, `name > n`, `name >= n` | `requires` | The comparison is true. | `{ operator: ">=", value: n }` |
 
-A `requires` map can also check what was played: `rumours.played: true` once the node
-`rumours` was entered, `hub.room.selected: false` while option `room` of node `hub` was
+A `requires` map can also check what was played: `rumours.stateData.played: true` once the
+node `rumours` was entered, `hub.options.room.selected: false` while option `room` of node `hub` was
 never chosen. Put `Dialogue.<id>.` in front for a node of another dialogue, as in
-`Dialogue.cellar.door.played: false` (spec §2.5.3).
+`Dialogue.cellar.door.stateData.played: false` (spec §2.5.3).
 
 ```osf fragment
 Option room {
   text: "And about that room?"
-  requires: { rumours.played: true }  // only after hearing the rumours
+  requires: { rumours.stateData.played: true }  // only after hearing the rumours
   next: room
 }
 ```
@@ -442,7 +442,7 @@ text        = ("text" | "title") ":" string ;          (title on nodes only)
 next        = "next" ":" ( id | "Dialogue" "." id ) [ "requires" conditions ] ;
 sets        = "{" { id ( ":" value | ("+=" | "-=") number ) [ "," ] } "}" ;
 conditions  = "{" { ( id ( ":" value | ("!=" | "<" | "<=" | ">" | ">=") number ) | played ":" bool ) [ "," ] } "}" ;
-played      = [ "Dialogue" "." id "." ] id "." ( "played" | id "." "selected" ) ;
+played      = [ "Dialogue" "." id "." ] id "." ( "stateData" "." "played" | "options" "." id "." "selected" ) ;
 locale      = "Locale" id "{" { story | character | document | dialogue } "}" ;   (text fields only)
 value       = number | bool ;
 bool        = "true" | "false" ;

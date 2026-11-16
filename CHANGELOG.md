@@ -5,8 +5,8 @@ that `osf` 0.1.0 accepts is still valid and means the same thing.
 
 ## 0.4.0
 
-- `requires` can check the play history: `node_02.played: true` once a node was entered,
-  `node_02.ask.selected: true` once an option was chosen. Both name a node in the same
+- `requires` can check the play history: `node_02.stateData.played: true` once a node was
+  entered, `node_02.options.ask.selected: true` once an option was chosen. Both name a node in the same
   dialogue, or in another with `Dialogue.<id>.` in front. New rules OSF126
   (unknown-option) and OSF127 (bad-history-condition).
 

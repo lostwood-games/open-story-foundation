@@ -19,13 +19,13 @@ Dialogue street {
 
     Option give {
       text: "Give a coin"
-      requires: { outside.played: true, Dialogue.counter.offer.buy.selected: true }
+      requires: { outside.stateData.played: true, Dialogue.counter.offer.options.buy.selected: true }
       set: { gold -= 1 }
     }
 
     Option walk {
       text: "Walk past"
-      requires: { beggar.give.selected: false }
+      requires: { beggar.options.give.selected: false }
     }
   }
 }

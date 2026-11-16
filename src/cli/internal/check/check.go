@@ -175,7 +175,8 @@ func Project(p *osf.Project) Result {
 		return out
 	}
 	// checkHistory checks a played or selected condition (spec §2.5.3):
-	// [Dialogue.<id>.]<node>.played or [Dialogue.<id>.]<node>.<option>.selected,
+	// [Dialogue.<id>.]<node>.stateData.played or
+	// [Dialogue.<id>.]<node>.options.<option>.selected,
 	// compared with true or false, in requires only.
 	checkHistory := func(where string, pos diag.Pos, isSet bool, a osf.Assign, dlg string) {
 		at := &osf.Str{Value: a.Name, Pos: a.Pos, End: a.End}
@@ -192,8 +193,8 @@ func Project(p *osf.Project) Result {
 		case isSet:
 			r.at(diag.BadHistoryCondition, at, pos, "%s: %s is a condition; played and selected belong in requires", where, a.Name)
 			return
-		case !(last == "played" && len(parts) == 2 || last == "selected" && len(parts) == 3):
-			r.at(diag.BadHistoryCondition, at, pos, "%s: %q is neither a variable nor <node>.played or <node>.<option>.selected", where, a.Name)
+		case !(len(parts) == 3 && parts[1] == "stateData" && last == "played" || len(parts) == 4 && parts[1] == "options" && last == "selected"):
+			r.at(diag.BadHistoryCondition, at, pos, "%s: %q is neither a variable nor <node>.stateData.played or <node>.options.<option>.selected", where, a.Name)
 			return
 		case a.Op != "" || a.Value.Kind != osf.Bool:
 			r.at(diag.BadHistoryCondition, at, pos, "%s: %s can only be compared with true or false, as %s: true", where, a.Name, a.Name)
@@ -202,8 +203,8 @@ func Project(p *osf.Project) Result {
 		options, ok := graph[dlg][parts[0]]
 		if !ok {
 			r.suggest(diag.UnknownNode, at, pos, parts[0], nodesOf(dlg), "%s: node %q does not exist in Dialogue %s", where, parts[0], dlg)
-		} else if last == "selected" && !options[parts[1]] {
-			r.suggest(diag.UnknownOption, at, pos, parts[1], keysOf(options), "%s: Node %s in Dialogue %s has no option %q", where, parts[0], dlg, parts[1])
+		} else if last == "selected" && !options[parts[2]] {
+			r.suggest(diag.UnknownOption, at, pos, parts[2], keysOf(options), "%s: Node %s in Dialogue %s has no option %q", where, parts[0], dlg, parts[2])
 		}
 	}
 

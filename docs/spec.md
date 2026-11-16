@@ -236,13 +236,13 @@ Besides variables, `requires` can check the play history:
 
 ```yaml fragment
 requires:
-  rumours.played: true                    # node rumours of this dialogue was entered
-  hub.room.selected: false                # option room of node hub was never chosen
-  Dialogue.cellar.door.played: false      # a node of another dialogue
+  rumours.stateData.played: true               # node rumours of this dialogue was entered
+  hub.options.room.selected: false             # option room of node hub was never chosen
+  Dialogue.cellar.door.stateData.played: false # a node of another dialogue
 ```
 
-- `<node>.played` is true once the node was entered, at any time in the play.
-- `<node>.<option>.selected` is true once that option was chosen.
+- `<node>.stateData.played` is true once the node was entered, at any time in the play.
+- `<node>.options.<option>.selected` is true once that option was chosen.
 - Both name a node of the same dialogue; `Dialogue.<id>.` in front names one in another
   dialogue (OSF114 when it does not exist). An unknown node is OSF113, an unknown option
   OSF126.
