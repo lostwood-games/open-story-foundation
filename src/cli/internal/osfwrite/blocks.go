@@ -161,8 +161,8 @@ func node(w *writer, n *osf.Node, inLocale bool) {
 			}
 			w.block("Option "+o.ID, o.Comments, func() {
 				w.textField("text", o.Text)
-				if s := valueMap("requires", o.Requires); s != "" {
-					w.addc(s, o.RequiresComments)
+				if s := requires(o.Requires, o.RequiresOr); s != "" {
+					w.addc("requires:"+s, o.RequiresComments)
 				}
 				if s := valueMap("set", o.Set); s != "" {
 					w.addc(s, o.SetComments)
@@ -177,7 +177,7 @@ func node(w *writer, n *osf.Node, inLocale bool) {
 // the plain `next:`.
 func nexts(w *writer, branches []*osf.Branch, next *osf.Str) {
 	for _, b := range branches {
-		w.addc("next: "+b.To.Value+" requires "+strings.TrimPrefix(valueMap("requires", b.Requires), "requires: "), b.Comments)
+		w.addc("next: "+b.To.Value+" requires"+requires(b.Requires, b.RequiresOr), b.Comments)
 	}
 	if next != nil {
 		w.addc("next: "+next.Value, next.Comments)

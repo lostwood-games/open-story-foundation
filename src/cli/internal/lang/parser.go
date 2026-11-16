@@ -404,7 +404,6 @@ func (p *parser) valueMap(field Token) []osf.Assign {
 		}
 		p.attemptEntry(base, func() {
 			name := p.entryName(field)
-			seen.once(p, Token{Text: name.Value, Pos: name.Pos})
 			var op osf.Op
 			if t := p.peek(); t.Kind == Op {
 				p.next()
@@ -418,8 +417,36 @@ func (p *parser) valueMap(field Token) []osf.Assign {
 			} else {
 				p.expect(Colon, "after "+name.Value)
 			}
-			out = append(out, osf.Assign{Name: name.Value, Op: op, Value: p.value(name.Value), Pos: name.Pos, End: name.End})
+			// set names a variable once. requires may compare one several
+			// times, as in gold >= 3, gold <= 10, but not twice the same way.
+			if field.Text != "requires" {
+				seen.once(p, Token{Text: name.Value, Pos: name.Pos})
+			}
+			a := osf.Assign{Name: name.Value, Op: op, Value: p.value(name.Value), Pos: name.Pos, End: name.End}
+			if field.Text == "requires" {
+				cond := a.RequiresString()
+				if prev, ok := seen[cond]; ok {
+					p.fail(diag.DuplicateField, Token{Text: name.Value, Pos: name.Pos, End: name.End}, "%s is already required on line %d", cond, prev.Line)
+				}
+				seen[cond] = name.Pos
+			}
+			out = append(out, a)
 		})
+	}
+}
+
+// requires parses the conditions after `requires`: one value map, or several
+// joined by `or`, as { gold >= 3 } or { god_mode: true }. Every entry of a map
+// must be met; one met map is enough.
+func (p *parser) requires(field Token) (first []osf.Assign, or [][]osf.Assign) {
+	first = p.valueMap(field)
+	for {
+		t := p.peek()
+		if t.Kind != Ident || t.Text != "or" {
+			return first, or
+		}
+		p.next()
+		or = append(or, p.valueMap(Token{Kind: field.Kind, Text: field.Text, Pos: t.Pos, End: t.End}))
 	}
 }
 
@@ -739,7 +766,8 @@ func (p *parser) nextField(t Token, seen fields, next **osf.Str, branches *[]*os
 	to := p.target()
 	if r := p.peek(); r.Kind == Ident && r.Text == "requires" {
 		p.next()
-		b := &osf.Branch{To: to, Requires: p.valueMap(r)}
+		b := &osf.Branch{To: to}
+		b.Requires, b.RequiresOr = p.requires(r)
 		*branches = append(*branches, b)
 		p.done(&b.Comments)
 		return
@@ -829,7 +857,7 @@ func (p *parser) option(kw Token, inLocale bool) *osf.Option {
 				o.Set = p.valueMap(t)
 				p.done(&o.SetComments)
 			} else {
-				o.Requires = p.valueMap(t)
+				o.Requires, o.RequiresOr = p.requires(t)
 				p.done(&o.RequiresComments)
 			}
 		default:

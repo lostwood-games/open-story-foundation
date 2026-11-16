@@ -218,12 +218,16 @@ func (e *explorer) unreachableOptions(p *osf.Project, r *Report) {
 				if e.usable[ok] {
 					continue
 				}
-				var req []string
-				for _, a := range o.Requires {
-					req = append(req, strings.Replace(a.RequiresString(), ": ", " = ", 1))
+				var groups []string
+				for _, g := range osf.Groups(o.Requires, o.RequiresOr) {
+					var req []string
+					for _, a := range g {
+						req = append(req, strings.Replace(a.RequiresString(), ": ", " = ", 1))
+					}
+					groups = append(groups, strings.Join(req, ", "))
 				}
 				r.Findings = append(r.Findings, Finding{Kind: "unreachable option", Dialogue: d.ID, Node: n.ID, Option: o.ID,
-					Msg: fmt.Sprintf("unreachable option: %s (requires %s)", ok, strings.Join(req, ", "))})
+					Msg: fmt.Sprintf("unreachable option: %s (requires %s)", ok, strings.Join(groups, " or "))})
 			}
 		}
 	}

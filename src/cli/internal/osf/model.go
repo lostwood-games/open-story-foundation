@@ -292,9 +292,10 @@ type Node struct {
 type Option struct {
 	ID               string
 	Text             *Str
-	Next             *Str      // followed when no branch matches
-	Branches         []*Branch // conditional next, tried in order before Next
-	Requires         []Assign
+	Next             *Str       // followed when no branch matches
+	Branches         []*Branch  // conditional next, tried in order before Next
+	Requires         []Assign   // all must be met
+	RequiresOr       [][]Assign // alternatives: the option also shows when one of these groups is fully met
 	Set              []Assign
 	Pos              diag.Pos
 	End              diag.Pos
@@ -304,13 +305,23 @@ type Option struct {
 	SetComments      Comments
 }
 
+// Groups returns the alternative groups of a requires: the first group, then
+// the ones written after `or`. It is met when every condition of one group is.
+func Groups(first []Assign, or [][]Assign) [][]Assign {
+	if len(first) == 0 && len(or) == 0 {
+		return nil
+	}
+	return append([][]Assign{first}, or...)
+}
+
 // Branch is a conditional next: To is followed when every Requires entry is
 // met. The branches of a node or option are tried in order; the first that
 // matches wins, and Next is followed when none does.
 type Branch struct {
-	To       *Str
-	Requires []Assign
-	Comments Comments
+	To         *Str
+	Requires   []Assign
+	RequiresOr [][]Assign // alternatives, as for an option
+	Comments   Comments
 }
 
 // Targets returns where next can lead: each branch's target, then Next.

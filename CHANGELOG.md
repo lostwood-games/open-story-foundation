@@ -3,6 +3,17 @@
 Each release adds to the format without changing what earlier files mean: a project
 that `osf` 0.1.0 accepts is still valid and means the same thing.
 
+## 0.5.0
+
+- `requires` can put several conditions on one variable, as `{ gold >= 3, gold <= 10 }`.
+  The same condition twice is still OSF014.
+- `requires` can have alternatives: `{ gold >= 3 } or { god_mode: true }` is met when
+  every condition of one group is. This works on options and on a conditional `next`.
+- YAML and JSON get a full form of `requires` that writes the logic out: `all` is a list
+  of `{ variable, operator, value }` conditions that must all be met, and `any` is a list
+  of `all` groups of which one is enough. The operator `==` is new there. The short
+  mapping of variable to value keeps its meaning.
+
 ## 0.4.0
 
 - `requires` can check the play history: `node_02.stateData.played: true` once a node was

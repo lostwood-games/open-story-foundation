@@ -208,10 +208,37 @@ requires:
   within the 32-bit range.
 - A variable appears at most once in one `set` or `requires` mapping, since it is the key.
 
+This mapping is the short form of `requires`: every entry must be met. The full form
+writes the logic out and is needed for two things the short form cannot say: several
+conditions on one variable, and alternatives.
+
+```yaml fragment
+requires:
+  any:                                              # OR: one of these groups is enough
+    - all:                                          # AND: every condition of the group
+        - { variable: gold, operator: ">=", value: 3 }
+        - { variable: gold, operator: "<=", value: 20 }
+        - { variable: has_lantern, operator: "==", value: false }
+    - all:
+        - { variable: god_mode, operator: "==", value: true }
+```
+
+- `all` is a non-empty list of conditions that must all be met. `requires` can hold it
+  directly, as `requires: { all: [...] }`, when there are no alternatives.
+- `any` is a non-empty list of `{ all: [...] }` groups. The conditions are met when every
+  condition of at least one group is. `requires` holds `any` or `all`, not both.
+- A condition is `{ variable, operator, value }`, all three required. `operator` is `==`,
+  `!=`, `<`, `<=`, `>` or `>=`; `==` is the plain value of the short form, so "exactly 4
+  gold" is `{ variable: gold, operator: "==", value: 4 }` or, in the short form, `gold: 4`.
+- `variable` can be a played or selected condition (§2.5.3).
+- The same condition twice in one group is OSF014.
+- A short mapping means the same as one `all` group with its entries. `osf convert`
+  writes the short form whenever it can say the same thing.
+
 #### 2.5.2 Conditional next
 
 `next` on a node or an option can instead be a list of branches. Each branch has a target
-`to` and the same `requires` an option has. The branches are tried in order and the first
+`to` and the same `requires` an option has, in the short or the full form (§2.5.1). The branches are tried in order and the first
 whose conditions are all met is followed. The last branch may leave out `requires`: it is
 taken when no other matches. When no branch matches and there is no such fallback, the
 dialogue ends there, as it does for a node without `next`.

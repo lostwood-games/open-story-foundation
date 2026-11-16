@@ -225,7 +225,7 @@ func dialogue(d *osf.Dialogue) *yaml.Node {
 			options := mapping()
 			for _, o := range n.Options {
 				opt := mapping()
-				addValues(opt, "requires", o.Requires, o.RequiresComments)
+				addRequires(opt, o.Requires, o.RequiresOr, o.RequiresComments)
 				addValues(opt, "set", o.Set, o.SetComments)
 				addNext(opt, o.Branches, o.Next)
 				content := mapping()
@@ -289,20 +289,72 @@ func addNext(m *yaml.Node, branches []*osf.Branch, next *osf.Str) {
 		return
 	}
 	seq := &yaml.Node{Kind: yaml.SequenceNode}
-	item := func(to string, requires []osf.Assign, c osf.Comments) {
+	item := func(to string, requires []osf.Assign, or [][]osf.Assign, c osf.Comments) {
 		it := mapping("to", str(to))
-		addValues(it, "requires", requires, osf.Comments{})
+		addRequires(it, requires, or, osf.Comments{})
 		it.HeadComment = yamlComment(trimBlank(c.Head))
 		it.Content[1].LineComment = lineComment(c.Trail)
 		seq.Content = append(seq.Content, it)
 	}
 	for _, b := range branches {
-		item(b.To.Value, b.Requires, b.Comments)
+		item(b.To.Value, b.Requires, b.RequiresOr, b.Comments)
 	}
 	if next != nil {
-		item(next.Value, nil, next.Comments)
+		item(next.Value, nil, nil, next.Comments)
 	}
 	m.Content = append(m.Content, str("next"), seq)
+}
+
+// addRequires writes requires in the short form, a mapping of variable to
+// value, when that can say it: one group that names each variable once.
+// Otherwise it writes the full form, `all` for one group and `any` of `all`
+// groups for alternatives, one { variable, operator, value } per condition.
+func addRequires(m *yaml.Node, first []osf.Assign, or [][]osf.Assign, c osf.Comments) {
+	groups := osf.Groups(first, or)
+	if len(groups) == 0 {
+		return
+	}
+	if len(groups) == 1 && !repeatsName(first) {
+		addValues(m, "requires", first, c)
+		return
+	}
+	all := func(g []osf.Assign) *yaml.Node {
+		seq := &yaml.Node{Kind: yaml.SequenceNode}
+		for _, a := range g {
+			op := string(a.Op)
+			if a.Op == osf.OpEqual {
+				op = "=="
+			}
+			operator := str(op)
+			operator.Style = yaml.DoubleQuotedStyle
+			cond := mapping("variable", str(a.Name), "operator", operator, "value", value(a.Value))
+			cond.Style = yaml.FlowStyle
+			seq.Content = append(seq.Content, cond)
+		}
+		return mapping("all", seq)
+	}
+	vm := all(groups[0])
+	if len(groups) > 1 {
+		seq := &yaml.Node{Kind: yaml.SequenceNode}
+		for _, g := range groups {
+			seq.Content = append(seq.Content, all(g))
+		}
+		vm = mapping("any", seq)
+	}
+	k := str("requires")
+	comment(k, vm, c)
+	m.Content = append(m.Content, k, vm)
+}
+
+func repeatsName(g []osf.Assign) bool {
+	seen := map[string]bool{}
+	for _, a := range g {
+		if seen[a.Name] {
+			return true
+		}
+		seen[a.Name] = true
+	}
+	return false
 }
 
 func addValues(m *yaml.Node, key string, values []osf.Assign, c osf.Comments) {
