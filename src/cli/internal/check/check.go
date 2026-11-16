@@ -143,13 +143,78 @@ func Project(p *osf.Project) Result {
 			r.at(diag.BadDefault, span(v.Pos, v.End), v.Pos, "Variable %s is %s but its default is %s", v.ID, v.Type, v.Default)
 		}
 	}
+	// graph maps each dialogue to its nodes and each node to its options, for
+	// played and selected conditions.
+	graph := map[string]map[string]map[string]bool{}
 	for _, d := range p.Dialogues {
 		define("Dialogue", d.ID, d.Pos, d.End)
+		if graph[d.ID] == nil {
+			graph[d.ID] = map[string]map[string]bool{}
+		}
+		for _, n := range d.Nodes {
+			graph[d.ID][n.ID] = map[string]bool{}
+			for _, o := range n.Options {
+				graph[d.ID][n.ID][o.ID] = true
+			}
+		}
+	}
+	keysOf := func(m map[string]bool) []string {
+		var out []string
+		for k := range m {
+			out = append(out, k)
+		}
+		sort.Strings(out)
+		return out
+	}
+	nodesOf := func(dlg string) []string {
+		var out []string
+		for k := range graph[dlg] {
+			out = append(out, k)
+		}
+		sort.Strings(out)
+		return out
+	}
+	// checkHistory checks a played or selected condition (spec §2.5.3):
+	// [Dialogue.<id>.]<node>.stateData.played or
+	// [Dialogue.<id>.]<node>.options.<option>.selected,
+	// compared with true or false, in requires only.
+	checkHistory := func(where string, pos diag.Pos, isSet bool, a osf.Assign, dlg string) {
+		at := &osf.Str{Value: a.Name, Pos: a.Pos, End: a.End}
+		parts := strings.Split(a.Name, ".")
+		if parts[0] == "Dialogue" && len(parts) > 2 {
+			dlg, parts = parts[1], parts[2:]
+			if graph[dlg] == nil {
+				r.suggest(diag.UnknownDialogue, at, pos, "Dialogue."+dlg, refs("Dialogue"), "%s: Dialogue.%s does not exist", where, dlg)
+				return
+			}
+		}
+		last := parts[len(parts)-1]
+		switch {
+		case isSet:
+			r.at(diag.BadHistoryCondition, at, pos, "%s: %s is a condition; played and selected belong in requires", where, a.Name)
+			return
+		case !(len(parts) == 3 && parts[1] == "stateData" && last == "played" || len(parts) == 4 && parts[1] == "options" && last == "selected"):
+			r.at(diag.BadHistoryCondition, at, pos, "%s: %q is neither a variable nor <node>.stateData.played or <node>.options.<option>.selected", where, a.Name)
+			return
+		case a.Op != "" || a.Value.Kind != osf.Bool:
+			r.at(diag.BadHistoryCondition, at, pos, "%s: %s can only be compared with true or false, as %s: true", where, a.Name, a.Name)
+			return
+		}
+		options, ok := graph[dlg][parts[0]]
+		if !ok {
+			r.suggest(diag.UnknownNode, at, pos, parts[0], nodesOf(dlg), "%s: node %q does not exist in Dialogue %s", where, parts[0], dlg)
+		} else if last == "selected" && !options[parts[2]] {
+			r.suggest(diag.UnknownOption, at, pos, parts[2], keysOf(options), "%s: Node %s in Dialogue %s has no option %q", where, parts[0], dlg, parts[2])
+		}
 	}
 
 	plainForm := map[bool]string{true: "set to true or false", false: "compared with true or false"}
-	checkValues := func(where string, pos diag.Pos, isSet bool, values []osf.Assign) {
+	checkValues := func(where string, pos diag.Pos, isSet bool, values []osf.Assign, dlg string) {
 		for _, a := range values {
+			if strings.Contains(a.Name, ".") {
+				checkHistory(where, pos, isSet, a, dlg)
+				continue
+			}
 			at := &osf.Str{Value: a.Name, Pos: a.Pos, End: a.End}
 			v, ok := variables[a.Name]
 			switch {
@@ -227,10 +292,10 @@ func Project(p *osf.Project) Result {
 			}
 			for _, b := range n.Branches {
 				checkNext(where, n.Pos, b.To)
-				checkValues(where+": next "+b.To.Value+" requires", n.Pos, false, b.Requires)
+				checkValues(where+": next "+b.To.Value+" requires", n.Pos, false, b.Requires, d.ID)
 			}
 			checkNext(where, n.Pos, n.Next)
-			checkValues(where+": set", n.Pos, true, n.Set)
+			checkValues(where+": set", n.Pos, true, n.Set, d.ID)
 			for _, o := range n.Options {
 				ow := where + ", Option " + o.ID
 				if !osf.IDPattern.MatchString(o.ID) {
@@ -241,11 +306,11 @@ func Project(p *osf.Project) Result {
 				}
 				for _, b := range o.Branches {
 					checkNext(ow, o.Pos, b.To)
-					checkValues(ow+": next "+b.To.Value+" requires", o.Pos, false, b.Requires)
+					checkValues(ow+": next "+b.To.Value+" requires", o.Pos, false, b.Requires, d.ID)
 				}
 				checkNext(ow, o.Pos, o.Next)
-				checkValues(ow+": requires", o.Pos, false, o.Requires)
-				checkValues(ow+": set", o.Pos, true, o.Set)
+				checkValues(ow+": requires", o.Pos, false, o.Requires, d.ID)
+				checkValues(ow+": set", o.Pos, true, o.Set, d.ID)
 			}
 		}
 		for _, n := range d.Nodes {

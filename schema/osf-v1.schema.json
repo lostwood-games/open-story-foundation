@@ -86,9 +86,10 @@
       }
     },
     "variableConditions": {
-      "description": "Map of Variable id to the value it must equal, or to a comparison with a number.",
+      "description": "Map of Variable id to the value it must equal, or to a comparison with a number. A key <node>.stateData.played or <node>.options.<option>.selected, optionally after Dialogue.<id>., is true once that node was entered or that option chosen.",
       "type": "object",
-      "propertyNames": { "$ref": "#/$defs/id" },
+      "propertyNames": { "pattern": "^([A-Za-z0-9_][A-Za-z0-9_-]*|(Dialogue\\.[A-Za-z0-9_][A-Za-z0-9_-]*\\.)?[A-Za-z0-9_][A-Za-z0-9_-]*\\.(stateData\\.played|options\\.[A-Za-z0-9_][A-Za-z0-9_-]*\\.selected))$" },
+      "patternProperties": { "\\.(stateData\\.played|selected)$": { "type": "boolean" } },
       "additionalProperties": { "if": { "type": "object" }, "then": { "$ref": "#/$defs/Condition" }, "else": { "$ref": "#/$defs/value" } }
     },
     "Condition": {

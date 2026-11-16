@@ -403,7 +403,7 @@ func (p *parser) valueMap(field Token) []osf.Assign {
 			return out
 		}
 		p.attemptEntry(base, func() {
-			name := p.id("a variable name")
+			name := p.entryName(field)
 			seen.once(p, Token{Text: name.Value, Pos: name.Pos})
 			var op osf.Op
 			if t := p.peek(); t.Kind == Op {
@@ -421,6 +421,31 @@ func (p *parser) valueMap(field Token) []osf.Assign {
 			out = append(out, osf.Assign{Name: name.Value, Op: op, Value: p.value(name.Value), Pos: name.Pos, End: name.End})
 		})
 	}
+}
+
+// entryName parses the name of a value map entry: a variable, or in requires
+// a played or selected condition, a dotted path such as
+// node_02.stateData.played, node_02.options.ask.selected or
+// Dialogue.intro.greet.stateData.played. The checker validates
+// the path.
+func (p *parser) entryName(field Token) osf.Str {
+	var name osf.Str
+	if t := p.peek(); field.Text == "requires" && t.Kind == Ident && t.Text == "Dialogue" && p.peek2().Kind == Dot {
+		p.next()
+		name = osf.Str{Value: t.Text, Pos: t.Pos, End: t.End}
+	} else {
+		name = p.id("a variable name")
+	}
+	for p.peek().Kind == Dot {
+		dot := p.next()
+		if field.Text != "requires" {
+			p.fail(diag.UnexpectedToken, dot, "%s takes variable names; played and selected conditions belong in requires", field.Text)
+		}
+		part := p.id("a node or option id, stateData, options, played or selected")
+		name.Value += "." + part.Value
+		name.End = part.End
+	}
+	return name
 }
 
 // attemptEntry is attempt for value map entries: recovery stops at a comma,

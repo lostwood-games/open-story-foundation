@@ -68,8 +68,8 @@ var Rules = []Rule{
 	{"OSF110", "missing-field", "A required field is missing: a Story, Character or Document name, a Node or Option text, a YAML structural field.", Error},
 	{"OSF111", "unknown-start", "The Story start points to a Dialogue that does not exist.", Error},
 	{"OSF112", "unknown-speaker", "A speaker naming a Character that does not exist.", Error},
-	{"OSF113", "unknown-node", "`next` points to a node that is not in the dialogue.", Error},
-	{"OSF114", "unknown-dialogue", "`next` points to a Dialogue that does not exist.", Error},
+	{"OSF113", "unknown-node", "`next` or a played or selected condition points to a node that is not in the dialogue.", Error},
+	{"OSF114", "unknown-dialogue", "`next` or a played or selected condition points to a Dialogue that does not exist.", Error},
 	{"OSF115", "unknown-start-node", "The dialogue's start node is not one of its nodes.", Error},
 	{"OSF116", "no-nodes", "A Dialogue with no nodes.", Error},
 	{"OSF117", "next-and-options", "A node with both `next` and options.", Error},
@@ -81,6 +81,8 @@ var Rules = []Rule{
 	{"OSF123", "unknown-kind", "A YAML kind that is not part of its apiVersion.", Error},
 	{"OSF124", "duplicate-plugin", "A plugin listed twice in the plugins Configuration.", Error},
 	{"OSF125", "branch-after-fallback", "A YAML `next` list entry without `requires` that is not the last one, so the entries after it are never taken.", Error},
+	{"OSF126", "unknown-option", "A selected condition names an option the node does not have.", Error},
+	{"OSF127", "bad-history-condition", "A played or selected condition that is not `<node>.stateData.played` or `<node>.options.<option>.selected` (optionally after `Dialogue.<id>.`), that is in `set`, or that is compared with something other than true or false.", Error},
 
 	// Variables and values.
 	{"OSF200", "unknown-variable", "`set` or `requires` names a Variable that does not exist.", Error},

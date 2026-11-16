@@ -28,3 +28,19 @@ data:
     beggar:
       content:
         text: A beggar steps into the light of your lantern.
+      options:
+        give:
+          requires:
+            outside.stateData.played: true
+            Dialogue.counter.offer.options.buy.selected: true
+          set:
+            gold:
+              operation: subtract
+              value: 1
+          content:
+            text: Give a coin
+        walk:
+          requires:
+            beggar.options.give.selected: false
+          content:
+            text: Walk past
