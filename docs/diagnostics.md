@@ -56,8 +56,8 @@ This file is generated from `src/cli/internal/diag/rules.go`; regenerate it with
 | OSF110 | missing-field | error | A required field is missing: a Story, Character or Document name, a Node or Option text, a YAML structural field. |
 | OSF111 | unknown-start | error | The Story start points to a Dialogue that does not exist. |
 | OSF112 | unknown-speaker | error | A speaker naming a Character that does not exist. |
-| OSF113 | unknown-node | error | `next` points to a node that is not in the dialogue. |
-| OSF114 | unknown-dialogue | error | `next` points to a Dialogue that does not exist. |
+| OSF113 | unknown-node | error | `next` or a played or selected condition points to a node that is not in the dialogue. |
+| OSF114 | unknown-dialogue | error | `next` or a played or selected condition points to a Dialogue that does not exist. |
 | OSF115 | unknown-start-node | error | The dialogue's start node is not one of its nodes. |
 | OSF116 | no-nodes | error | A Dialogue with no nodes. |
 | OSF117 | next-and-options | error | A node with both `next` and options. |
@@ -69,6 +69,8 @@ This file is generated from `src/cli/internal/diag/rules.go`; regenerate it with
 | OSF123 | unknown-kind | error | A YAML kind that is not part of its apiVersion. |
 | OSF124 | duplicate-plugin | error | A plugin listed twice in the plugins Configuration. |
 | OSF125 | branch-after-fallback | error | A YAML `next` list entry without `requires` that is not the last one, so the entries after it are never taken. |
+| OSF126 | unknown-option | error | A selected condition names an option the node does not have. |
+| OSF127 | bad-history-condition | error | A played or selected condition that is not `<node>.played` or `<node>.<option>.selected` (optionally after `Dialogue.<id>.`), that is in `set`, or that is compared with something other than true or false. |
 | OSF200 | unknown-variable | error | `set` or `requires` names a Variable that does not exist. |
 | OSF201 | wrong-value-type | error | A `set` or `requires` value of a different type than the Variable, or a negative value set on an UnsignedNumber. |
 | OSF202 | bad-default | error | A Variable default of a different type than the Variable, or a negative default for an UnsignedNumber. |

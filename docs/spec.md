@@ -180,7 +180,8 @@ Rules:
   dialogue; so does an option without `next`. `options`, when present, holds at least
   one option.
 - `set` and `requires` map Variable ids (OSF200) to values of the variable's type
-  (OSF201), or to a number operation (§2.5.1). `requires` belongs to options only.
+  (OSF201), or to a number operation (§2.5.1). `requires` belongs to options and to
+  branches of `next` (§2.5.2), and can also check what was played (§2.5.3).
 - Node and option ids are YAML keys, so a repeated key is an error (OSF118, OSF119).
 - A node that no `next` leads to and that is not `startNode` is warning OSF900.
 
@@ -228,6 +229,25 @@ next:
 - Only the last branch may leave out `requires`; an earlier one would hide the branches
   after it (OSF125).
 - A plain `next: away` is the same as a list holding only `- to: away`.
+
+#### 2.5.3 Played and selected conditions
+
+Besides variables, `requires` can check the play history:
+
+```yaml fragment
+requires:
+  rumours.played: true                    # node rumours of this dialogue was entered
+  hub.room.selected: false                # option room of node hub was never chosen
+  Dialogue.cellar.door.played: false      # a node of another dialogue
+```
+
+- `<node>.played` is true once the node was entered, at any time in the play.
+- `<node>.<option>.selected` is true once that option was chosen.
+- Both name a node of the same dialogue; `Dialogue.<id>.` in front names one in another
+  dialogue (OSF114 when it does not exist). An unknown node is OSF113, an unknown option
+  OSF126.
+- They are compared with `true` or `false` only, and belong in `requires`, never in
+  `set` (OSF127).
 
 ### 2.6 `plugins/v1 Configuration`
 
@@ -363,7 +383,8 @@ This is how a player runs a project; `osf play` and the language server's Play p
 implement it (`src/cli/internal/play`).
 
 1. Play starts at a chosen dialogue, else the Story's `start`, else the first dialogue
-   in file order. Every Variable is set to its `default`.
+   in file order. Every Variable is set to its `default`, and no node has been played
+   and no option selected yet (§2.5.3).
 2. Play enters the dialogue's `startNode`. Entering a node applies its `set` (in the order written), then shows
    its line: the text, and as the speaker its `title` if it has one, else the speaker
    Character's `name`, else nothing (narration).
@@ -372,8 +393,9 @@ implement it (`src/cli/internal/play`).
    followed; when none is, the dialogue ends. `next: Dialogue.<id>` enters that
    dialogue's `startNode`; variables keep their values across dialogues.
 4. A node with options stops and offers the options whose `requires` are all met by the
-   current values (an option with no `requires` is always offered). Choosing one applies
-   its `set` and follows its `next`; an option without `next` ends the play.
+   current values and history (an option with no `requires` is always offered). Choosing
+   one marks it selected, applies its `set` and follows its `next`; an option without
+   `next` ends the play. A node counts as played from the moment it is entered.
 5. A node with neither `next` nor options ends the play. A node whose options are all
    hidden by `requires` is a dead end: nothing can be chosen and play cannot go on.
    `osf play -coverage` reports dead ends, options no path can show, and loops with no
