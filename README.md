@@ -80,6 +80,12 @@ in [`docs/spec.md`](docs/spec.md), the `.osf` language in
 [`docs/language.md`](docs/language.md), and every error code in
 [`docs/diagnostics.md`](docs/diagnostics.md).
 
+## Editor support
+
+[`src/vscode`](src/vscode) is the VS Code extension for `.osf` files: syntax
+highlighting, comment toggling, bracket matching and two-space indentation. It is
+published to the Visual Studio Marketplace and Open VSX as `lostwood.osf`.
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md).

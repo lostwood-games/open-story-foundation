@@ -29,6 +29,18 @@ The `Release` workflow tests the code, builds `osf` for Linux, macOS and Windows
 with generated notes. A tag with a `-`, such as `v0.2.0-rc.1`, is published as a
 pre-release, so the install scripts keep installing the last full release.
 
+The VS Code extension in `src/vscode` is released on its own, with a tag
+`osf-vscode-v<version>` that matches `version` in `src/vscode/package.json`:
+
+```sh
+git tag osf-vscode-v0.1.0
+git push origin osf-vscode-v0.1.0
+```
+
+The `VS Code extension release` workflow tests and packages it, publishes it to the
+Visual Studio Marketplace and Open VSX, and attaches the `.vsix` to a GitHub release
+that is not marked latest, so the install scripts keep finding `osf`.
+
 ## License
 
 By contributing you agree that your contribution is licensed under the

@@ -1,0 +1,116 @@
+// SYNTAX TEST "source.osf" "OSF 0.6.0 grammar"
+
+Versions {
+// <-------- storage.type.osf
+  language = "1"  // version of this syntax
+//^^^^^^^^ variable.other.property.osf
+//         ^ keyword.operator.assignment.osf
+//           ^^^ string.quoted.double.osf
+//                ^^^^^^^^^^^^^^^^^^^^^^^^^ comment.line.double-slash.osf
+}
+
+Story LDOD {
+// <----- storage.type.osf
+//    ^^^^ entity.name.type.osf
+  start = Dialogue.01_intro_scene
+//^^^^^ keyword.other.start.osf
+//        ^^^^^^^^ support.class.osf
+//                ^ punctuation.accessor.osf
+//                 ^^^^^^^^^^^^^^ variable.other.reference.osf
+}
+
+I18n {
+  Locale Rus "Russian" { enforce = true }
+//^^^^^^ storage.type.osf
+//       ^^^ entity.name.type.osf
+//                       ^^^^^^^ variable.other.property.osf
+//                                 ^^^^ constant.language.boolean.osf
+}
+
+/* block
+   comment */
+// <-------- comment.block.osf
+
+Variable gold: UnsignedNumber = 0 { description = "Coins." }
+// <-------- storage.type.osf
+//       ^^^^ entity.name.type.variable.osf
+//             ^^^^^^^^^^^^^^ support.type.osf
+//                              ^ constant.numeric.integer.osf
+Variable trust: Number = -1
+//                       ^^ constant.numeric.integer.osf
+
+Dialogue 01_intro_scene {
+//       ^^^^^^^^^^^^^^ entity.name.type.osf
+  start hub
+//^^^^^ keyword.other.start.osf
+//      ^^^ entity.name.function.osf
+
+  Node hub {
+//^^^^ storage.type.osf
+//     ^^^ entity.name.function.osf
+    speaker: stranger
+//  ^^^^^^^ keyword.other.field.osf
+//         ^ punctuation.separator.key-value.osf
+    text: "Hi, {{ Character.stranger.name }} \{{ and \n"
+//         ^^^ string.quoted.double.osf
+//             ^^ punctuation.section.interpolation.begin.osf
+//                ^^^^^^^^^ support.class.osf
+//                          ^^^^^^^^ variable.other.reference.osf
+//                                   ^^^^ variable.other.property.osf
+//                                        ^^ punctuation.section.interpolation.end.osf
+//                                           ^^^ constant.character.escape.osf
+//                                                   ^^ constant.character.escape.osf
+    set: { gold -= 3, trust += 1, seen: true }
+//  ^^^ keyword.other.field.osf
+//         ^^^^ variable.other.osf
+//              ^^ keyword.operator.assignment.compound.osf
+//                                ^^^^ variable.other.osf
+
+    Option buy {
+//  ^^^^^^ storage.type.osf
+//         ^^^ entity.name.function.osf
+      text: "Three coins."
+      requires: { gold >= 3, gold <= 10 } or { god_mode: true }
+//    ^^^^^^^^ keyword.other.field.osf
+//                     ^^ keyword.operator.comparison.osf
+//                                        ^^ keyword.operator.logical.osf
+      next: room
+//    ^^^^ keyword.other.field.osf
+//          ^^^^ entity.name.function.osf
+    }
+
+    Option ask {
+      text: "And the room?"
+      requires: { rumours.stateData.played: true, hub.options.ask.selected: false }
+//                ^^^^^^^ entity.name.function.osf
+//                        ^^^^^^^^^ variable.language.osf
+//                                  ^^^^^^ variable.language.osf
+//                                                ^^^ entity.name.function.osf
+//                                                    ^^^^^^^ variable.language.osf
+//                                                            ^^^ entity.name.function.osf
+//                                                                ^^^^^^^^ variable.language.osf
+      next: Dialogue.cellar
+//          ^^^^^^^^ support.class.osf
+//                   ^^^^^^ variable.other.reference.osf
+    }
+  }
+
+  Node room {
+    text: """
+      The room is dark.
+      // a writer's note
+//    ^^^^^^^^^^^^^^^^^ comment.line.double-slash.writer-note.osf
+      \// not a note, {{ Document.old_lighthouse }}
+//    ^^^ constant.character.escape.osf
+//                       ^^^^^^^^ support.class.osf
+    """
+    next: guard requires { Dialogue.cellar.door.stateData.played: false }
+//              ^^^^^^^^ keyword.control.conditional.osf
+//                         ^^^^^^^^ support.class.osf
+//                                         ^^^^ entity.name.function.osf
+//                                              ^^^^^^^^^ variable.language.osf
+    next: hub.options
+//        ^^^ entity.name.function.osf
+//            ^^^^^^^ variable.language.osf
+  }
+}
