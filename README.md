@@ -84,7 +84,7 @@ in [`docs/spec.md`](docs/spec.md), the `.osf` language in
 
 [`src/vscode`](src/vscode) is the VS Code extension for `.osf` files: syntax
 highlighting, comment toggling, bracket matching and two-space indentation. It is
-published to the Visual Studio Marketplace and Open VSX as `lostwood.osf`.
+published to the Visual Studio Marketplace as `lostwood.osf`.
 
 ## Contributing
 

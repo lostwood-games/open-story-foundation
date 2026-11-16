@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.1
+
+- Extension icon, and a file icon for `.osf` files in light and dark themes.
+
 ## 1.0.0
 
 - Syntax highlighting for the OSF language as of OSF 0.6.0: blocks, fields, references,

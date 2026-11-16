@@ -63,6 +63,5 @@ git push origin osf-vscode-v1.0.0
 ```
 
 The `VS Code extension release` workflow tests and packages the extension, publishes it
-to the Visual Studio Marketplace and Open VSX, and attaches the `.vsix` to a GitHub
-release. It publishes with trusted publishing (GitHub OIDC), so no tokens are stored;
-the first Open VSX release needs the secret `OVSX_PAT` once (see the workflow file).
+to the Visual Studio Marketplace, and attaches the `.vsix` to a GitHub
+release. It publishes with trusted publishing (GitHub OIDC), so no tokens are stored.

@@ -38,7 +38,7 @@ git push origin osf-vscode-v1.0.0
 ```
 
 The `VS Code extension release` workflow tests and packages it, publishes it to the
-Visual Studio Marketplace and Open VSX, and attaches the `.vsix` to a GitHub release
+Visual Studio Marketplace, and attaches the `.vsix` to a GitHub release
 that is not marked latest, so the install scripts keep finding `osf`.
 
 ## License
