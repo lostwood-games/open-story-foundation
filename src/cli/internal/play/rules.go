@@ -99,9 +99,6 @@ func (w world) met(first []osf.Assign, or [][]osf.Assign) bool {
 	return len(groups) == 0
 }
 
-// allowed reports whether an option is offered.
-func (w world) allowed(o *osf.OptionModel) bool { return w.met(o.Requires, o.RequiresOr) }
-
 // next picks where a node or an option leads: the first branch whose
 // requires are met, else the plain next. ok is false when it leads nowhere,
 // which ends the play.
