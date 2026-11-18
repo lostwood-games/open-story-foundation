@@ -123,10 +123,10 @@ func histKey(h history) string {
 	return strings.Join(keys, ", ")
 }
 
-// restore puts the objects in a state seen from node n: every node and
+// restore puts the objects in a remembered state: every node and
 // option in hist is marked played or selected, nothing else is, and the
 // returned world holds a copy of vars.
-func (e *explorer) restore(n *Node, vars map[string]osf.Value, hist history) world {
+func (e *explorer) restore(vars map[string]osf.Value, hist history) world {
 	for _, clear := range e.touched {
 		clear()
 	}
@@ -141,7 +141,7 @@ func (e *explorer) restore(n *Node, vars map[string]osf.Value, hist history) wor
 			e.undoLater(func() { o.selected = false })
 		}
 	}
-	return world{dialogue: n.dialogue.ID, vars: copyVars(vars), hist: e.s, ix: e.s.ix}
+	return world{vars: copyVars(vars), hist: e.s, ix: e.s.ix}
 }
 
 // undoLater remembers how to clear a flag that was set, for the next restore.
@@ -165,7 +165,7 @@ func (e *explorer) history() history {
 // offered again (next: <node>.options): it is not entered, so nothing is
 // applied.
 func (e *explorer) add(n *Node, vars map[string]osf.Value, hist history, back bool) string {
-	now := e.restore(n, vars, hist)
+	now := e.restore(vars, hist)
 	if !back {
 		n.Enter(now)
 		e.undoLater(func() { n.played = false })
@@ -188,7 +188,7 @@ func (e *explorer) expand(key string) {
 	st := e.states[key]
 	n := st.node
 	// A state reached by <node>.options goes straight to the options.
-	if next, ok := n.Next(e.restore(n, st.vars, st.hist)); ok && !strings.HasSuffix(key, " options") {
+	if next, ok := n.Next(e.restore(st.vars, st.hist)); ok && !strings.HasSuffix(key, " options") {
 		if to, back := e.target(n.dialogue, next); to != nil {
 			e.edges[key] = append(e.edges[key], e.add(to, st.vars, st.hist, back))
 		}
@@ -201,7 +201,7 @@ func (e *explorer) expand(key string) {
 	}
 	any := false
 	for _, o := range n.Options() {
-		now := e.restore(n, st.vars, st.hist)
+		now := e.restore(st.vars, st.hist)
 		if ok, _ := o.IsAvailable(now); !ok {
 			continue
 		}

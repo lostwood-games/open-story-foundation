@@ -66,13 +66,12 @@ func TestNodeNextNowhere(t *testing.T) {
 }
 
 // A relative name like intro.stateData.played in a branch means the node's
-// own dialogue, whichever dialogue the passed state is seen from.
+// own dialogue: market.intro.
 func TestNodeNextReadsItsOwnDialogue(t *testing.T) {
 	model := &osf.NodeModel{ID: "gate", Text: str("A gate"), Next: str("outside"),
 		Branches: []*osf.Branch{branch("inside", []osf.Assign{is("intro.stateData.played", boolean(true))})}}
 	_, n := gateNode(t, model, variables{})
 	now := stateWith(nil, "market.intro")
-	now.dialogue = "elsewhere"
 	if got, _ := n.Next(now); got != "inside" {
 		t.Errorf("Next = %q, want inside: market.intro was played", got)
 	}

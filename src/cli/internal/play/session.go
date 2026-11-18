@@ -143,11 +143,11 @@ func New(p *osf.Project, opts Options) (*Session, error) {
 		options: map[*osf.OptionModel]*Option{}, byKey: map[string][]*Option{}}
 	for _, d := range p.Dialogues {
 		for _, n := range d.Nodes {
-			node := &Node{model: n, dialogue: d}
+			node := &Node{model: n, dialogue: d, branches: branchesOf(n.Branches, d.ID)}
 			s.nodes[n] = node
 			s.nodesBy[node.key()] = append(s.nodesBy[node.key()], node)
 			for _, o := range n.Options {
-				opt := &Option{model: o, node: node, dialogue: d, conditions: conditionsOf(o.Requires, o.RequiresOr, d.ID)}
+				opt := &Option{model: o, node: node, dialogue: d, conditions: conditionsOf(o.Requires, o.RequiresOr, d.ID), branches: branchesOf(o.Branches, d.ID)}
 				node.options = append(node.options, opt)
 				s.options[o] = opt
 				s.byKey[opt.key()] = append(s.byKey[opt.key()], opt)
@@ -235,7 +235,7 @@ func (s *Session) choose(index int, o *Option) (State, error) {
 
 // world is what conditions are checked against at this moment.
 func (s *Session) world() world {
-	return world{dialogue: s.dialogue.ID, vars: s.vars, hist: s, ix: s.ix}
+	return world{vars: s.vars, hist: s, ix: s.ix}
 }
 
 // has reports whether a history key is set: a node that was entered, or an
