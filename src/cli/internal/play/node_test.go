@@ -25,17 +25,21 @@ func gateNode(t *testing.T, gate *osf.NodeModel, v variables) (*Session, *Node) 
 }
 
 func TestNodeEnter(t *testing.T) {
-	_, n := gateNode(t, &osf.NodeModel{ID: "gate", Text: str("A gate"), Set: []osf.Assign{add("gold", 2), is("brave", boolean(true))}}, variables{gold: 1})
+	_, n := gateNode(t, &osf.NodeModel{ID: "gate", Text: str("A gate"), Set: []osf.Assign{add("gold", 2), is("brave", boolean(true))}}, variables{})
 	if n.IsPlayed() {
 		t.Fatal("IsPlayed = true before Enter")
 	}
-	changes := n.Enter()
+	vars := map[string]osf.Value{"gold": number(1), "brave": boolean(false)}
+	changes := n.Enter(stateWith(vars))
 	if !n.IsPlayed() {
 		t.Error("IsPlayed = false after Enter")
 	}
 	want := []Change{{Name: "gold", Value: int64(3)}, {Name: "brave", Value: true}}
 	if !reflect.DeepEqual(changes, want) {
 		t.Errorf("Enter changes = %v, want %v", changes, want)
+	}
+	if vars["gold"] != number(3) {
+		t.Errorf("gold after Enter = %v, want 3", vars["gold"])
 	}
 }
 
@@ -120,7 +124,7 @@ func TestNodePlayedAnswersConditions(t *testing.T) {
 	if ok, _ := s.options[ask].IsAvailable(s.world()); ok {
 		t.Fatal("ask is available before gate was played")
 	}
-	n.Enter()
+	n.Enter(s.world())
 	if ok, reasons := s.options[ask].IsAvailable(s.world()); !ok {
 		t.Errorf("ask is not available after gate was played: %v", reasons)
 	}
@@ -138,7 +142,7 @@ func TestNodeSpeaker(t *testing.T) {
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			_, n := gateNode(t, tc.node, variables{})
-			if got := n.Speaker(); got != tc.want {
+			if got := n.Speaker(stateWith(nil)); got != tc.want {
 				t.Errorf("Speaker = %q, want %q", got, tc.want)
 			}
 		})
@@ -146,8 +150,8 @@ func TestNodeSpeaker(t *testing.T) {
 }
 
 func TestNodeText(t *testing.T) {
-	_, n := gateNode(t, &osf.NodeModel{ID: "gate", Text: str("The toll is {{ Variable.gold }} gold")}, variables{gold: 4})
-	if got, want := n.Text(), "The toll is 4 gold"; got != want {
+	_, n := gateNode(t, &osf.NodeModel{ID: "gate", Text: str("The toll is {{ Variable.gold }} gold")}, variables{})
+	if got, want := n.Text(stateWith(map[string]osf.Value{"gold": number(4)})), "The toll is 4 gold"; got != want {
 		t.Errorf("Text = %q, want %q", got, want)
 	}
 }

@@ -143,11 +143,11 @@ func New(p *osf.Project, opts Options) (*Session, error) {
 		options: map[*osf.OptionModel]*Option{}, byKey: map[string][]*Option{}}
 	for _, d := range p.Dialogues {
 		for _, n := range d.Nodes {
-			node := &Node{model: n, dialogue: d, session: s}
+			node := &Node{model: n, dialogue: d}
 			s.nodes[n] = node
 			s.nodesBy[node.key()] = append(s.nodesBy[node.key()], node)
 			for _, o := range n.Options {
-				opt := &Option{model: o, node: node, dialogue: d, session: s, conditions: conditionsOf(o.Requires, o.RequiresOr, d.ID)}
+				opt := &Option{model: o, node: node, dialogue: d, conditions: conditionsOf(o.Requires, o.RequiresOr, d.ID)}
 				node.options = append(node.options, opt)
 				s.options[o] = opt
 				s.byKey[opt.key()] = append(s.byKey[opt.key()], opt)
@@ -220,8 +220,8 @@ func (s *Session) ChooseID(id string) (State, error) {
 func (s *Session) choose(index int, o *Option) (State, error) {
 	s.path[len(s.path)-1].Option = o.ID()
 	s.lines = nil
-	s.chosen = &Chosen{Index: index, ID: o.ID(), Text: o.Text()}
-	s.chosen.Set = o.Select()
+	s.chosen = &Chosen{Index: index, ID: o.ID(), Text: o.Text(s.world())}
+	s.chosen.Set = o.Select(s.world())
 	next, ok := o.Next(s.world())
 	if !ok {
 		s.finished = true
@@ -235,7 +235,7 @@ func (s *Session) choose(index int, o *Option) (State, error) {
 
 // world is what conditions are checked against at this moment.
 func (s *Session) world() world {
-	return world{dialogue: s.dialogue.ID, vars: s.vars, hist: s}
+	return world{dialogue: s.dialogue.ID, vars: s.vars, hist: s, ix: s.ix}
 }
 
 // has reports whether a history key is set: a node that was entered, or an
@@ -285,8 +285,8 @@ func (s *Session) follow(next string) error {
 			return fmt.Errorf("next: node %q does not exist in Dialogue %s", next, d.ID)
 		}
 		s.dialogue, s.node = d, s.nodes[n]
-		line := Line{Dialogue: d.ID, Node: n.ID, Set: s.node.Enter()}
-		line.Speaker, line.Text = s.node.Speaker(), s.node.Text()
+		line := Line{Dialogue: d.ID, Node: n.ID, Set: s.node.Enter(s.world())}
+		line.Speaker, line.Text = s.node.Speaker(s.world()), s.node.Text(s.world())
 		s.lines = append(s.lines, line)
 		s.all = append(s.all, line)
 		s.path = append(s.path, Visit{Dialogue: d.ID, Node: n.ID})
@@ -297,15 +297,6 @@ func (s *Session) follow(next string) error {
 		}
 		next = target
 	}
-}
-
-func (s *Session) apply(set []osf.Assign) []Change {
-	var out []Change
-	for _, a := range set {
-		s.vars[a.Name] = a.Apply(s.ix.typeOf(a.Name), s.vars[a.Name])
-		out = append(out, Change{Name: a.Name, Value: jsonValue(s.vars[a.Name])})
-	}
-	return out
 }
 
 // State is the current state; before Start it is empty.
@@ -320,7 +311,7 @@ func (s *Session) State() State {
 	}
 	if !s.finished {
 		for i, o := range s.node.AvailableOptions(s.world()) {
-			st.Options = append(st.Options, Choice{Index: i + 1, ID: o.ID(), Text: o.Text()})
+			st.Options = append(st.Options, Choice{Index: i + 1, ID: o.ID(), Text: o.Text(s.world())})
 		}
 	}
 	return st

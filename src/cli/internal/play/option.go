@@ -6,7 +6,6 @@ type Option struct {
 	model      *osf.OptionModel
 	node       *Node
 	dialogue   *osf.Dialogue
-	session    *Session
 	conditions []Condition // its requires; all must be met
 	selected   bool
 }
@@ -30,9 +29,9 @@ func (o *Option) IsAvailable(now world) (bool, []string) {
 // (<node>.options.<option>.selected).
 func (o *Option) IsSelected() bool { return o.selected }
 
-func (o *Option) Select() []Change {
+func (o *Option) Select(now world) []Change {
 	o.selected = true
-	return o.session.apply(o.model.Set)
+	return now.apply(o.model.Set)
 }
 
 func (o *Option) Next(now world) (target string, ok bool) {
@@ -40,9 +39,9 @@ func (o *Option) Next(now world) (target string, ok bool) {
 }
 
 // Text is the option's text in the play's locale, with references resolved.
-func (o *Option) Text() string {
+func (o *Option) Text(now world) string {
 	key := "Dialogue." + o.dialogue.ID + ".nodes." + o.node.ID() + ".options." + o.model.ID + ".content.text"
-	return o.session.ix.resolve(o.session.ix.text(key, o.model.Text), o.session.vars)
+	return now.text(key, o.model.Text)
 }
 
 // key is the option's played-history key, as selected conditions name it.

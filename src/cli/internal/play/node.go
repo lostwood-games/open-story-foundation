@@ -5,7 +5,6 @@ import "github.com/lostwood-games/open-story-foundation/src/cli/internal/osf"
 type Node struct {
 	model    *osf.NodeModel
 	dialogue *osf.Dialogue
-	session  *Session
 	options  []*Option
 	played   bool
 }
@@ -29,9 +28,9 @@ func (n *Node) AvailableOptions(now world) []*Option {
 // (<node>.stateData.played).
 func (n *Node) IsPlayed() bool { return n.played }
 
-func (n *Node) Enter() []Change {
+func (n *Node) Enter(now world) []Change {
 	n.played = true
-	return n.session.apply(n.model.Set)
+	return now.apply(n.model.Set)
 }
 
 func (n *Node) Next(now world) (target string, ok bool) {
@@ -39,23 +38,21 @@ func (n *Node) Next(now world) (target string, ok bool) {
 	return now.next(n.model.Branches, n.model.Next)
 }
 
-func (n *Node) Speaker() string {
-	ix := n.session.ix
+func (n *Node) Speaker(now world) string {
 	if n.model.Title != nil {
-		return ix.resolve(ix.text(n.textKey()+"title", n.model.Title), n.session.vars)
+		return now.text(n.textKey()+"title", n.model.Title)
 	}
 	if n.model.Speaker != nil {
 		id := n.model.Speaker.Value[len("Character."):]
-		if c, ok := ix.characters[id]; ok {
-			return ix.resolve(ix.text("Character."+id+".name", c.Name), n.session.vars)
+		if c, ok := now.ix.characters[id]; ok {
+			return now.text("Character."+id+".name", c.Name)
 		}
 	}
 	return ""
 }
 
-func (n *Node) Text() string {
-	ix := n.session.ix
-	return ix.resolve(ix.text(n.textKey()+"text", n.model.Text), n.session.vars)
+func (n *Node) Text(now world) string {
+	return now.text(n.textKey()+"text", n.model.Text)
 }
 
 func (n *Node) textKey() string {
