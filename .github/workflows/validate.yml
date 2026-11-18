@@ -18,8 +18,8 @@ jobs:
       matrix:
         format: [yaml, osf]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v6
         with:
           go-version-file: src/cli/go.mod
           cache-dependency-path: src/cli/go.sum
