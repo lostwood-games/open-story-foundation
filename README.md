@@ -4,6 +4,10 @@
 [![OSF Validate Check](https://github.com/lostwood-games/open-story-foundation/actions/workflows/validate.yml/badge.svg)](https://github.com/lostwood-games/open-story-foundation/actions/workflows/validate.yml)
 [![VS Code extension release](https://github.com/lostwood-games/open-story-foundation/actions/workflows/vscode-release.yml/badge.svg)](https://github.com/lostwood-games/open-story-foundation/actions/workflows/vscode-release.yml)
 
+[![CodeQL](https://github.com/lostwood-games/open-story-foundation/actions/workflows/codeql.yml/badge.svg)](https://github.com/lostwood-games/open-story-foundation/actions/workflows/codeql.yml)
+
+
+
 Open Story Format is a way to keep a game's story as code: dialogues, characters,
 documents, variables and translations live in plain text files that sit in git next to
 the rest of the game. It is inspired by tools such as Terraform, Bicep and Kubernetes
