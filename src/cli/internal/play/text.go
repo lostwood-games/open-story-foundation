@@ -175,7 +175,7 @@ func plain(v osf.Value) string { return v.String() }
 
 // startNode is the node a dialogue starts at: startNode when set, else the
 // first node. It is nil for an empty dialogue.
-func startNode(d *osf.Dialogue) *osf.Node {
+func startNode(d *osf.Dialogue) *osf.NodeModel {
 	if d.StartNode != nil {
 		for _, n := range d.Nodes {
 			if n.ID == d.StartNode.Value {
@@ -189,7 +189,7 @@ func startNode(d *osf.Dialogue) *osf.Node {
 	return nil
 }
 
-func findNode(d *osf.Dialogue, id string) *osf.Node {
+func findNode(d *osf.Dialogue, id string) *osf.NodeModel {
 	for _, n := range d.Nodes {
 		if n.ID == id {
 			return n

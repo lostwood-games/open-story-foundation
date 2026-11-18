@@ -709,7 +709,7 @@ func (l *loader) dialogue(data *yaml.Node, pos, end diag.Pos, block func(map[str
 				if nf == nil {
 					continue
 				}
-				n := &osf.Node{ID: k.Value, Pos: l.pos(k), End: l.end(k), IDPos: l.idPos(k), Comments: l.comments(vals[i])}
+				n := &osf.NodeModel{ID: k.Value, Pos: l.pos(k), End: l.end(k), IDPos: l.idPos(k), Comments: l.comments(vals[i])}
 				n.Next, n.Branches = next(nf["next"], where)
 				n.Set, n.SetComments = l.values(nf["set"], where+".set")
 				if c := nf["content"]; c != nil {

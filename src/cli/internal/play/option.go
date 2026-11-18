@@ -4,7 +4,7 @@ import "github.com/lostwood-games/open-story-foundation/src/cli/internal/osf"
 
 type Option struct {
 	model      *osf.OptionModel
-	node       *osf.Node
+	node       *Node
 	dialogue   *osf.Dialogue
 	session    *Session
 	conditions []Condition // its requires; all must be met
@@ -41,12 +41,12 @@ func (o *Option) Next(now world) (target string, ok bool) {
 
 // Text is the option's text in the play's locale, with references resolved.
 func (o *Option) Text() string {
-	key := "Dialogue." + o.dialogue.ID + ".nodes." + o.node.ID + ".options." + o.model.ID + ".content.text"
+	key := "Dialogue." + o.dialogue.ID + ".nodes." + o.node.ID() + ".options." + o.model.ID + ".content.text"
 	return o.session.ix.resolve(o.session.ix.text(key, o.model.Text), o.session.vars)
 }
 
 // key is the option's played-history key, as selected conditions name it.
-func (o *Option) key() string { return selectedKey(o.dialogue.ID, o.node.ID, o.model.ID) }
+func (o *Option) key() string { return selectedKey(o.dialogue.ID, o.node.ID(), o.model.ID) }
 
 // seenFrom is the state with relative names (<node>.stateData.played)
 func (o *Option) seenFrom(now world) world {

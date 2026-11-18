@@ -138,7 +138,7 @@ func dialogue(w *writer, d *osf.Dialogue, inLocale bool) {
 	})
 }
 
-func node(w *writer, n *osf.Node, inLocale bool) {
+func node(w *writer, n *osf.NodeModel, inLocale bool) {
 	w.block("Node "+n.ID, n.Comments, func() {
 		if n.Speaker != nil {
 			w.addc("speaker: "+strings.TrimPrefix(n.Speaker.Value, "Character."), n.Speaker.Comments)
@@ -222,7 +222,7 @@ func locale(l *osf.Locale) (block, error) {
 			d.Name = &s
 		case kind == "Dialogue" && len(parts) >= 6 && parts[2] == "nodes":
 			d := find(&dialogues, id, func(d *osf.Dialogue) string { return d.ID }, func() *osf.Dialogue { return &osf.Dialogue{ID: id} })
-			n := find(&d.Nodes, parts[3], func(n *osf.Node) string { return n.ID }, func() *osf.Node { return &osf.Node{ID: parts[3]} })
+			n := find(&d.Nodes, parts[3], func(n *osf.NodeModel) string { return n.ID }, func() *osf.NodeModel { return &osf.NodeModel{ID: parts[3]} })
 			switch {
 			case len(parts) == 6 && parts[4] == "content" && parts[5] == "title":
 				n.Title = &s
