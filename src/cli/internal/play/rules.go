@@ -47,12 +47,11 @@ func historyKey(name, dlg string) (key string, ok bool) {
 }
 
 // world is what conditions are checked against: the variable values and the
-// play history, seen from one dialogue.
+// play history.
 type world struct {
-	dialogue string
-	vars     map[string]osf.Value
-	hist     historyReader
-	ix       *index // texts, characters and variable types of the project
+	vars map[string]osf.Value
+	hist historyReader
+	ix   *index // texts, characters and variable types of the project
 }
 
 // apply runs a set block on the world's values and returns what changed.
@@ -69,49 +68,6 @@ func (w world) apply(set []osf.Assign) []Change {
 // with {{ }} references resolved against the world's values.
 func (w world) text(key string, source *osf.Str) string {
 	return w.ix.resolve(w.ix.text(key, source), w.vars)
-}
-
-// holds reports whether one requires entry is met.
-func (w world) holds(a osf.Assign) bool {
-	if key, ok := historyKey(a.Name, w.dialogue); ok {
-		return a.Holds(osf.Value{Kind: osf.Bool, Bool: w.hist.has(key)})
-	}
-	v, ok := w.vars[a.Name]
-	return ok && a.Holds(v)
-}
-
-// met reports whether a requires is met: every entry of one of its groups.
-// A requires without conditions is met.
-func (w world) met(first []osf.Assign, or [][]osf.Assign) bool {
-	groups := osf.Groups(first, or)
-	for _, g := range groups {
-		all := true
-		for _, a := range g {
-			if !w.holds(a) {
-				all = false
-				break
-			}
-		}
-		if all {
-			return true
-		}
-	}
-	return len(groups) == 0
-}
-
-// next picks where a node or an option leads: the first branch whose
-// requires are met, else the plain next. ok is false when it leads nowhere,
-// which ends the play.
-func (w world) next(branches []*osf.Branch, plain *osf.Str) (target string, ok bool) {
-	for _, b := range branches {
-		if b.To != nil && w.met(b.Requires, b.RequiresOr) {
-			return b.To.Value, true
-		}
-	}
-	if plain != nil {
-		return plain.Value, true
-	}
-	return "", false
 }
 
 // backToOptions reports whether a next target is <node>.options, which offers

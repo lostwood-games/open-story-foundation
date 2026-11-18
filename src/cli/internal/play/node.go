@@ -6,6 +6,7 @@ type Node struct {
 	model    *osf.NodeModel
 	dialogue *osf.Dialogue
 	options  []*Option
+	branches []*Branch // conditional nexts, tried in order before the plain next
 	played   bool
 }
 
@@ -34,8 +35,7 @@ func (n *Node) Enter(now world) []Change {
 }
 
 func (n *Node) Next(now world) (target string, ok bool) {
-	now.dialogue = n.dialogue.ID
-	return now.next(n.model.Branches, n.model.Next)
+	return leadsTo(n.branches, n.model.Next, now)
 }
 
 func (n *Node) Speaker(now world) string {

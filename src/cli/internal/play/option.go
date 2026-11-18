@@ -7,6 +7,7 @@ type Option struct {
 	node       *Node
 	dialogue   *osf.Dialogue
 	conditions []Condition // its requires; all must be met
+	branches   []*Branch   // conditional nexts, tried in order before the plain next
 	selected   bool
 }
 
@@ -35,7 +36,7 @@ func (o *Option) Select(now world) []Change {
 }
 
 func (o *Option) Next(now world) (target string, ok bool) {
-	return o.seenFrom(now).next(o.model.Branches, o.model.Next)
+	return leadsTo(o.branches, o.model.Next, now)
 }
 
 // Text is the option's text in the play's locale, with references resolved.
@@ -46,9 +47,3 @@ func (o *Option) Text(now world) string {
 
 // key is the option's played-history key, as selected conditions name it.
 func (o *Option) key() string { return selectedKey(o.dialogue.ID, o.node.ID(), o.model.ID) }
-
-// seenFrom is the state with relative names (<node>.stateData.played)
-func (o *Option) seenFrom(now world) world {
-	now.dialogue = o.dialogue.ID
-	return now
-}

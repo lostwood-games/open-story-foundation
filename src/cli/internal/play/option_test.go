@@ -21,7 +21,7 @@ func stateWith(vars map[string]osf.Value, hist ...string) world {
 	for _, k := range hist {
 		h[k] = true
 	}
-	return world{dialogue: "market", vars: vars, hist: h, ix: testIndex()}
+	return world{vars: vars, hist: h, ix: testIndex()}
 }
 
 // testIndex holds the variable types (gold is unsigned) and texts of a
@@ -76,11 +76,10 @@ func TestOptionIsAvailable(t *testing.T) {
 }
 
 // A relative name like thanks.stateData.played means the option's own
-// dialogue, whichever dialogue the passed state is seen from.
+// dialogue: market.thanks.
 func TestOptionIsAvailableReadsItsOwnDialogue(t *testing.T) {
 	o := shopOption(t, &osf.OptionModel{ID: "buy", Text: str("Buy"), Requires: []osf.Assign{is("thanks.stateData.played", boolean(true))}}, variables{})
 	now := stateWith(nil, "market.thanks")
-	now.dialogue = "elsewhere"
 	if ok, reasons := o.IsAvailable(now); !ok {
 		t.Errorf("IsAvailable = false (%v), want true: market.thanks was played", reasons)
 	}
