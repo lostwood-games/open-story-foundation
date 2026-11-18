@@ -59,7 +59,10 @@ Options:
 			fmt.Fprintf(stderr, "osf: %v\n", err)
 			return 1
 		}
-		stdout.Write(out)
+		if _, err := stdout.Write(out); err != nil {
+			fmt.Fprintf(stderr, "osf: %v\n", err)
+			return 1
+		}
 		if errors, _ := diag.Count(diags); errors > 0 || p == nil {
 			return 1
 		}

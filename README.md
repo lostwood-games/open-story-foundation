@@ -58,7 +58,7 @@ irm https://raw.githubusercontent.com/lostwood-games/open-story-foundation/main/
 Both download the latest release for your system, check its checksum and put `osf` on
 your path. You can also download an archive from the
 [releases page](https://github.com/lostwood-games/open-story-foundation/releases), or
-build from source with Go 1.23 or newer:
+build from source with Go 1.26 or newer:
 
 ```sh
 cd src/cli && go build -o ../../osf ./cmd/osf

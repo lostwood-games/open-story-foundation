@@ -153,7 +153,7 @@ func TestEndings(t *testing.T) {
 }
 Dialogue e { Node x { text: "Alone" } }`)
 	s, _ := New(p, Options{})
-	st, _ := s.Start()
+	s.Start()
 	st, err := s.Choose(1)
 	if err != nil || !st.Finished || len(st.Lines) != 0 || st.Chosen.Set[0].Name != "gold" {
 		t.Errorf("ending by option: %+v, %v", st, err)
@@ -434,7 +434,6 @@ loop with no exit: e.x, e.y
 	if !reflect.DeepEqual(r.Dialogues[0].Unreached, []string{"b"}) {
 		t.Errorf("unreached %v", r.Dialogues[0].Unreached)
 	}
-	r, _ = Coverage(p, "")
 	p = one(t, `Dialogue d { Node b { text: "Lonely" next: b } }`)
 	r, _ = Coverage(p, "")
 	if got := findings(r); !reflect.DeepEqual(got, []string{"loop with no exit: d.b"}) {

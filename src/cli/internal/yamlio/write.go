@@ -86,7 +86,9 @@ func Encode(r Resource, format, comment string) ([]byte, error) {
 		if err := enc.Encode(doc); err != nil {
 			return nil, err
 		}
-		enc.Close()
+		if err := enc.Close(); err != nil {
+			return nil, err
+		}
 		return buf.Bytes(), nil
 	case "json":
 		return EncodeJSON(root)

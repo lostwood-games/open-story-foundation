@@ -1,0 +1,38 @@
+name: CodeQL
+
+# Security analysis of the Go CLI. Results show under Security > Code scanning.
+
+on:
+  pull_request:
+    branches: [main]
+    paths: ['src/cli/**', '.github/workflows/codeql.yml']
+  push:
+    branches: [main]
+    paths: ['src/cli/**', '.github/workflows/codeql.yml']
+  schedule:
+    - cron: '23 4 * * 1' # weekly, to catch newly published queries
+
+permissions:
+  contents: read
+
+jobs:
+  analyze:
+    name: Analyze Go
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: src/cli/go.mod
+          cache-dependency-path: src/cli/go.sum
+      - uses: github/codeql-action/init@v3
+        with:
+          languages: go
+          build-mode: autobuild
+          source-root: src/cli
+      - uses: github/codeql-action/analyze@v3
+        with:
+          category: /language:go
