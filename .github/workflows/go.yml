@@ -19,8 +19,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v6
         with:
           go-version-file: src/cli/go.mod
           cache-dependency-path: src/cli/go.sum
@@ -32,8 +32,8 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v6
         with:
           go-version-file: src/cli/go.mod
           cache-dependency-path: src/cli/go.sum
@@ -43,7 +43,7 @@ jobs:
         run: go vet ./...
       # staticcheck, errcheck, gosec and more; see src/cli/.golangci.yml.
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v8
+        uses: golangci/golangci-lint-action@v9
         with:
           version: v2.15.0
           working-directory: src/cli
@@ -52,9 +52,9 @@ jobs:
     name: govulncheck
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       # Same Go as the release build, so standard library findings match the shipped binaries.
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
           go-version-file: src/cli/go.mod
           cache-dependency-path: src/cli/go.sum
