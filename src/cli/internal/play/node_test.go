@@ -14,7 +14,7 @@ import (
 // stops at the start node `intro`, so gate itself is not played yet.
 func gateNode(t *testing.T, gate *osf.NodeModel, v variables) (*Session, *Node) {
 	t.Helper()
-	d := &osf.Dialogue{ID: "market", Nodes: []*osf.NodeModel{
+	d := &osf.DialogueModel{ID: "market", Nodes: []*osf.NodeModel{
 		{ID: "intro", Text: str("Hello")}, gate,
 		{ID: "inside", Text: str("Inside")}, {ID: "outside", Text: str("Outside")},
 	}}
@@ -51,7 +51,8 @@ func TestNodeNext(t *testing.T) {
 		gold int64
 		want string
 	}{{5, "inside"}, {1, "outside"}} {
-		got, ok := n.Next(stateWith(map[string]osf.Value{"gold": number(tc.gold)}))
+		to, ok := n.Next(stateWith(map[string]osf.Value{"gold": number(tc.gold)}))
+		got := nodeID(to)
 		if !ok || got != tc.want {
 			t.Errorf("gold %d: Next = %q, %v; want %q, true", tc.gold, got, ok, tc.want)
 		}
@@ -60,7 +61,8 @@ func TestNodeNext(t *testing.T) {
 
 func TestNodeNextNowhere(t *testing.T) {
 	_, n := gateNode(t, &osf.NodeModel{ID: "gate", Text: str("A gate")}, variables{})
-	if got, ok := n.Next(stateWith(nil)); ok {
+	if to, ok := n.Next(stateWith(nil)); ok {
+		got := nodeID(to)
 		t.Errorf("Next = %q, true; want no target", got)
 	}
 }
@@ -72,7 +74,8 @@ func TestNodeNextReadsItsOwnDialogue(t *testing.T) {
 		Branches: []*osf.Branch{branch("inside", []osf.Assign{is("intro.stateData.played", boolean(true))})}}
 	_, n := gateNode(t, model, variables{})
 	now := stateWith(nil, "market.intro")
-	if got, _ := n.Next(now); got != "inside" {
+	if to, _ := n.Next(now); nodeID(to) != "inside" {
+		got := nodeID(to)
 		t.Errorf("Next = %q, want inside: market.intro was played", got)
 	}
 }

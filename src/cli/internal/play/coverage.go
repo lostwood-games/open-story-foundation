@@ -90,14 +90,14 @@ func Coverage(p *osf.Project, dialogue string) (*Report, error) {
 	for _, k := range trackedHistory(p) {
 		e.tracked[k] = true
 	}
-	e.add(s.nodes[startNode(s.start)], vars, history{}, false)
+	e.add(s.start.Start(), vars, history{}, false)
 	for i := 0; i < len(e.order); i++ {
 		if len(e.order) > MaxStates {
 			return nil, fmt.Errorf("coverage: more than %d states; the variable space is too large to explore", MaxStates)
 		}
 		e.expand(e.order[i])
 	}
-	r := &Report{Start: s.start.ID, States: len(e.order), Endings: e.endings}
+	r := &Report{Start: s.start.ID(), States: len(e.order), Endings: e.endings}
 	e.summary(p, r)
 	e.deadEnds(p, r)
 	e.unreachableOptions(p, r)
@@ -189,8 +189,8 @@ func (e *explorer) expand(key string) {
 	n := st.node
 	// A state reached by <node>.options goes straight to the options.
 	if next, ok := n.Next(e.restore(st.vars, st.hist)); ok && !strings.HasSuffix(key, " options") {
-		if to, back := e.target(n.dialogue, next); to != nil {
-			e.edges[key] = append(e.edges[key], e.add(to, st.vars, st.hist, back))
+		if next.Err == nil { // a next naming nothing is reported by validation
+			e.edges[key] = append(e.edges[key], e.add(next.Node, st.vars, st.hist, next.Back))
 		}
 		return
 	}
@@ -216,37 +216,13 @@ func (e *explorer) expand(key string) {
 			e.endings++
 			continue
 		}
-		if to, back := e.target(n.dialogue, next); to != nil {
-			e.edges[key] = append(e.edges[key], e.add(to, now.vars, hist, back))
+		if next.Err == nil {
+			e.edges[key] = append(e.edges[key], e.add(next.Node, now.vars, hist, next.Back))
 		}
 	}
 	if !any {
 		e.stuck[n.key()] = append(e.stuck[n.key()], e.varsKey(st.vars))
 	}
-}
-
-// target resolves a next value to its node; nil when it points nowhere
-// (validation reports that separately). back is true for <node>.options.
-func (e *explorer) target(d *osf.Dialogue, next string) (n *Node, back bool) {
-	if strings.HasPrefix(next, "Dialogue.") {
-		nd, ok := e.s.ix.dialogues[strings.TrimPrefix(next, "Dialogue.")]
-		if !ok {
-			return nil, false
-		}
-		return e.node(startNode(nd)), false
-	}
-	if id, ok := backToOptions(next); ok {
-		return e.node(findNode(d, id)), true
-	}
-	return e.node(findNode(d, next)), false
-}
-
-// node is the Node object of a node model, nil for nil.
-func (e *explorer) node(m *osf.NodeModel) *Node {
-	if m == nil {
-		return nil
-	}
-	return e.s.nodes[m]
 }
 
 func (e *explorer) summary(p *osf.Project, r *Report) {

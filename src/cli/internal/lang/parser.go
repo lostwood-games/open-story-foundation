@@ -713,9 +713,9 @@ func (p *parser) variable(kw Token) *osf.Variable {
 	return v
 }
 
-func (p *parser) dialogue(kw Token, inLocale bool) *osf.Dialogue {
+func (p *parser) dialogue(kw Token, inLocale bool) *osf.DialogueModel {
 	id := p.id("a dialogue id")
-	d := &osf.Dialogue{ID: id.Value, Pos: kw.Pos, End: id.End, IDPos: id.Pos, File: p.rel, Comments: osf.Comments{Head: p.head}}
+	d := &osf.DialogueModel{ID: id.Value, Pos: kw.Pos, End: id.End, IDPos: id.Pos, File: p.rel, Comments: osf.Comments{Head: p.head}}
 	seen := fields{}
 	nodes := fields{}
 	p.block(kw, &d.Comments, func(t Token) {

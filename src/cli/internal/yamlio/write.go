@@ -203,7 +203,7 @@ func (r *renderer) add(out, source, api, kind string, data *yaml.Node, c osf.Com
 	r.resources = append(r.resources, Resource{Path: out, Source: source, API: api, Kind: kind, Data: data, Comments: c})
 }
 
-func dialogue(d *osf.Dialogue) *yaml.Node {
+func dialogue(d *osf.DialogueModel) *yaml.Node {
 	data := mapping("id", str(d.ID))
 	addText(data, "name", d.Name)
 	start := ""

@@ -200,7 +200,7 @@ type Project struct {
 	Characters []*Character
 	Documents  []*Document
 	Variables  []*Variable
-	Dialogues  []*Dialogue
+	Dialogues  []*DialogueModel
 	I18n       []*I18n
 	Locales    []*Locale
 }
@@ -261,7 +261,7 @@ type Variable struct {
 	Comments    Comments
 }
 
-type Dialogue struct {
+type DialogueModel struct {
 	ID        string
 	Name      *Str
 	StartNode *Str
@@ -421,7 +421,7 @@ func (p *Project) Texts() []TextEntry {
 }
 
 // DialogueTexts calls add for every text in d with its translation key.
-func DialogueTexts(d *Dialogue, add func(key string, s *Str)) {
+func DialogueTexts(d *DialogueModel, add func(key string, s *Str)) {
 	k := "Dialogue." + d.ID
 	add(k+".name", d.Name)
 	for _, n := range d.Nodes {

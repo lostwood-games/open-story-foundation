@@ -5,9 +5,10 @@ import "github.com/lostwood-games/open-story-foundation/src/cli/internal/osf"
 type Option struct {
 	model      *osf.OptionModel
 	node       *Node
-	dialogue   *osf.Dialogue
+	dialogue   *Dialogue
 	conditions []Condition // its requires; all must be met
 	branches   []*Branch   // conditional nexts, tried in order before the plain next
+	next       *Target     // the plain next; nil when there is none
 	selected   bool
 }
 
@@ -35,15 +36,15 @@ func (o *Option) Select(now world) []Change {
 	return now.apply(o.model.Set)
 }
 
-func (o *Option) Next(now world) (target string, ok bool) {
-	return leadsTo(o.branches, o.model.Next, now)
+func (o *Option) Next(now world) (target *Target, ok bool) {
+	return leadsTo(o.branches, o.next, now)
 }
 
 // Text is the option's text in the play's locale, with references resolved.
 func (o *Option) Text(now world) string {
-	key := "Dialogue." + o.dialogue.ID + ".nodes." + o.node.ID() + ".options." + o.model.ID + ".content.text"
+	key := "Dialogue." + o.dialogue.ID() + ".nodes." + o.node.ID() + ".options." + o.model.ID + ".content.text"
 	return now.text(key, o.model.Text)
 }
 
 // key is the option's played-history key, as selected conditions name it.
-func (o *Option) key() string { return selectedKey(o.dialogue.ID, o.node.ID(), o.model.ID) }
+func (o *Option) key() string { return selectedKey(o.dialogue.ID(), o.node.ID(), o.model.ID) }
