@@ -43,25 +43,24 @@ type Report struct {
 // state is a place in the play: a node whose set has been applied, with the
 // variable values and the history at that moment.
 type state struct {
-	d    *osf.Dialogue
-	n    *osf.NodeModel
+	node *Node
 	vars map[string]osf.Value
 	hist history
 }
 
-func (st *state) world() world {
-	return world{dialogue: st.d.ID, vars: st.vars, hist: st.hist}
-}
-
+// explorer walks every state of the play on the session's Node and Option
+// objects. Before it asks an object anything, restore puts the objects back
+// in the state being explored.
 type explorer struct {
-	ix      *index
+	s       *Session
 	tracked map[string]bool // history keys some condition reads
+	touched []func()        // clears the flags set since the last restore
 	states  map[string]*state
 	order   []string            // state keys in discovery order
 	edges   map[string][]string // state key -> successor keys; end is the ending
 	stuck   map[string][]string // node key -> var keys with no available option
 	visited map[string][]string // node key -> var keys reached
-	usable  map[string]bool     // option key -> allowed somewhere
+	usable  map[string]bool     // option key -> available somewhere
 	endings int
 }
 
@@ -76,7 +75,7 @@ func Coverage(p *osf.Project, dialogue string) (*Report, error) {
 		return nil, err
 	}
 	e := &explorer{
-		ix:      s.ix,
+		s:       s,
 		tracked: map[string]bool{},
 		states:  map[string]*state{},
 		edges:   map[string][]string{},
@@ -91,7 +90,7 @@ func Coverage(p *osf.Project, dialogue string) (*Report, error) {
 	for _, k := range trackedHistory(p) {
 		e.tracked[k] = true
 	}
-	e.add(s.start, startNode(s.start), vars, history{}, false)
+	e.add(s.nodes[startNode(s.start)], vars, history{}, false)
 	for i := 0; i < len(e.order); i++ {
 		if len(e.order) > MaxStates {
 			return nil, fmt.Errorf("coverage: more than %d states; the variable space is too large to explore", MaxStates)
@@ -108,7 +107,7 @@ func Coverage(p *osf.Project, dialogue string) (*Report, error) {
 
 func (e *explorer) varsKey(vars map[string]osf.Value) string {
 	var parts []string
-	for _, v := range e.ix.p.Variables {
+	for _, v := range e.s.ix.p.Variables {
 		parts = append(parts, v.ID+" = "+vars[v.ID].String())
 	}
 	return strings.Join(parts, ", ")
@@ -124,100 +123,130 @@ func histKey(h history) string {
 	return strings.Join(keys, ", ")
 }
 
-// with returns h plus key, when some condition reads that key. Other history
-// cannot change how the play goes on, so it is left out of the states.
-func (e *explorer) with(h history, key string) history {
-	if !e.tracked[key] || h[key] {
-		return h
+// restore puts the objects in a state seen from node n: every node and
+// option in hist is marked played or selected, nothing else is, and the
+// returned world holds a copy of vars.
+func (e *explorer) restore(n *Node, vars map[string]osf.Value, hist history) world {
+	for _, clear := range e.touched {
+		clear()
 	}
-	out := history{key: true}
-	for k := range h {
-		out[k] = true
-	}
-	return out
-}
-
-// add enters node n with vars and history, marks it played, applies its set
-// and returns the state key. With back the node's options are offered again
-// (next: <node>.options): it is not entered, so nothing is applied.
-func (e *explorer) add(d *osf.Dialogue, n *osf.NodeModel, vars map[string]osf.Value, hist history, back bool) string {
-	next := copyVars(vars)
-	if !back {
-		hist = e.with(hist, playedKey(d.ID, n.ID))
-		for _, a := range n.Set {
-			next[a.Name] = a.Apply(e.ix.typeOf(a.Name), next[a.Name])
+	e.touched = nil
+	for key := range hist {
+		for _, node := range e.s.nodesBy[key] {
+			node.played = true
+			e.undoLater(func() { node.played = false })
+		}
+		for _, o := range e.s.byKey[key] {
+			o.selected = true
+			e.undoLater(func() { o.selected = false })
 		}
 	}
-	vk := e.varsKey(next)
-	key := d.ID + "." + n.ID + " [" + vk + "] {" + histKey(hist) + "}"
+	return world{dialogue: n.dialogue.ID, vars: copyVars(vars), hist: e.s, ix: e.s.ix}
+}
+
+// undoLater remembers how to clear a flag that was set, for the next restore.
+func (e *explorer) undoLater(clear func()) { e.touched = append(e.touched, clear) }
+
+// history reads back from the objects the tracked history that is set.
+// Other history cannot change how the play goes on, so it is left out of the
+// states.
+func (e *explorer) history() history {
+	h := history{}
+	for key := range e.tracked {
+		if e.s.has(key) {
+			h[key] = true
+		}
+	}
+	return h
+}
+
+// add enters node n with vars and history (it is marked played and its set
+// applied) and returns the state key. With back the node's options are
+// offered again (next: <node>.options): it is not entered, so nothing is
+// applied.
+func (e *explorer) add(n *Node, vars map[string]osf.Value, hist history, back bool) string {
+	now := e.restore(n, vars, hist)
+	if !back {
+		n.Enter(now)
+		e.undoLater(func() { n.played = false })
+		hist = e.history()
+	}
+	vk := e.varsKey(now.vars)
+	key := n.key() + " [" + vk + "] {" + histKey(hist) + "}"
 	if back {
 		key += " options"
 	}
 	if _, ok := e.states[key]; !ok {
-		e.states[key] = &state{d, n, next, hist}
+		e.states[key] = &state{n, now.vars, hist}
 		e.order = append(e.order, key)
-		nk := d.ID + "." + n.ID
-		e.visited[nk] = append(e.visited[nk], vk)
+		e.visited[n.key()] = append(e.visited[n.key()], vk)
 	}
 	return key
 }
 
 func (e *explorer) expand(key string) {
 	st := e.states[key]
+	n := st.node
 	// A state reached by <node>.options goes straight to the options.
-	if next, ok := st.world().next(st.n.Branches, st.n.Next); ok && !strings.HasSuffix(key, " options") {
-		if d, n, back := e.target(st.d, next); n != nil {
-			e.edges[key] = append(e.edges[key], e.add(d, n, st.vars, st.hist, back))
+	if next, ok := n.Next(e.restore(n, st.vars, st.hist)); ok && !strings.HasSuffix(key, " options") {
+		if to, back := e.target(n.dialogue, next); to != nil {
+			e.edges[key] = append(e.edges[key], e.add(to, st.vars, st.hist, back))
 		}
 		return
 	}
-	if len(st.n.Options) == 0 {
+	if !n.HasOptions() {
 		e.edges[key] = append(e.edges[key], end)
 		e.endings++
 		return
 	}
 	any := false
-	for _, o := range st.n.Options {
-		if !st.world().allowed(o) {
+	for _, o := range n.Options() {
+		now := e.restore(n, st.vars, st.hist)
+		if ok, _ := o.IsAvailable(now); !ok {
 			continue
 		}
 		any = true
-		e.usable[st.d.ID+"."+st.n.ID+"."+o.ID] = true
-		vars := copyVars(st.vars)
-		for _, a := range o.Set {
-			vars[a.Name] = a.Apply(e.ix.typeOf(a.Name), vars[a.Name])
-		}
-		hist := e.with(st.hist, selectedKey(st.d.ID, st.n.ID, o.ID))
-		next, ok := world{dialogue: st.d.ID, vars: vars, hist: hist}.next(o.Branches, o.Next)
+		e.usable[o.key()] = true
+		o.Select(now)
+		e.undoLater(func() { o.selected = false })
+		hist := e.history()
+		next, ok := o.Next(now)
 		if !ok {
 			e.edges[key] = append(e.edges[key], end)
 			e.endings++
 			continue
 		}
-		if d, n, back := e.target(st.d, next); n != nil {
-			e.edges[key] = append(e.edges[key], e.add(d, n, vars, hist, back))
+		if to, back := e.target(n.dialogue, next); to != nil {
+			e.edges[key] = append(e.edges[key], e.add(to, now.vars, hist, back))
 		}
 	}
 	if !any {
-		nk := st.d.ID + "." + st.n.ID
-		e.stuck[nk] = append(e.stuck[nk], e.varsKey(st.vars))
+		e.stuck[n.key()] = append(e.stuck[n.key()], e.varsKey(st.vars))
 	}
 }
 
-// target resolves a next value; the node is nil when it points nowhere
+// target resolves a next value to its node; nil when it points nowhere
 // (validation reports that separately). back is true for <node>.options.
-func (e *explorer) target(d *osf.Dialogue, next string) (nd *osf.Dialogue, n *osf.NodeModel, back bool) {
+func (e *explorer) target(d *osf.Dialogue, next string) (n *Node, back bool) {
 	if strings.HasPrefix(next, "Dialogue.") {
-		nd, ok := e.ix.dialogues[strings.TrimPrefix(next, "Dialogue.")]
+		nd, ok := e.s.ix.dialogues[strings.TrimPrefix(next, "Dialogue.")]
 		if !ok {
-			return nil, nil, false
+			return nil, false
 		}
-		return nd, startNode(nd), false
+		return e.node(startNode(nd)), false
 	}
 	if id, ok := backToOptions(next); ok {
-		return d, findNode(d, id), true
+		return e.node(findNode(d, id)), true
 	}
-	return d, findNode(d, next), false
+	return e.node(findNode(d, next)), false
+}
+
+// node is the Node object of a node model, nil for nil.
+func (e *explorer) node(m *osf.NodeModel) *Node {
+	if m == nil {
+		return nil
+	}
+	return e.s.nodes[m]
 }
 
 func (e *explorer) summary(p *osf.Project, r *Report) {
@@ -319,7 +348,7 @@ func (e *explorer) loops(p *osf.Project, r *Report) {
 		}
 		nodes := map[string]bool{}
 		for _, k := range scc {
-			nodes[e.states[k].d.ID+"."+e.states[k].n.ID] = true
+			nodes[e.states[k].node.key()] = true
 		}
 		var list []string
 		for nk := range nodes {
