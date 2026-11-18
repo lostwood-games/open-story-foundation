@@ -3,35 +3,40 @@ package play
 import "github.com/lostwood-games/open-story-foundation/src/cli/internal/osf"
 
 type Option struct {
-	model    *osf.Option
-	node     *osf.Node
-	dialogue *osf.Dialogue
-	session  *Session
-	selected bool
+	model      *osf.OptionModel
+	node       *osf.Node
+	dialogue   *osf.Dialogue
+	session    *Session
+	conditions []Condition // its requires; all must be met
+	selected   bool
 }
 
 func (o *Option) ID() string { return o.model.ID }
 
-// IsAvailable reports whether the option is offered now: its requires are
-// met by the current values and play history.
-func (o *Option) IsAvailable() bool { return o.world().allowed(o.model) }
+// will also return reasons
+func (o *Option) IsAvailable(now world) (bool, []string) {
+	if len(o.conditions) == 0 {
+		return true, nil
+	}
+	var notMet []string
+	for _, condition := range o.conditions {
+		if met, reason := condition.Check(now); !met {
+			notMet = append(notMet, reason)
+		}
+	}
+	return len(notMet) == 0, notMet
+}
 
-// IsSelected reports whether the option was chosen in this play
 // (<node>.options.<option>.selected).
 func (o *Option) IsSelected() bool { return o.selected }
 
-// Select chooses the option: it is marked selected and its set is applied.
-// It returns the changes.
 func (o *Option) Select() []Change {
 	o.selected = true
 	return o.session.apply(o.model.Set)
 }
 
-// Next is where the option leads now: the first branch whose requires are
-// met, else its plain next. ok is false when it leads nowhere, which ends the
-// play.
-func (o *Option) Next() (target string, ok bool) {
-	return o.world().next(o.model.Branches, o.model.Next)
+func (o *Option) Next(now world) (target string, ok bool) {
+	return o.seenFrom(now).next(o.model.Branches, o.model.Next)
 }
 
 // Text is the option's text in the play's locale, with references resolved.
@@ -43,8 +48,8 @@ func (o *Option) Text() string {
 // key is the option's played-history key, as selected conditions name it.
 func (o *Option) key() string { return selectedKey(o.dialogue.ID, o.node.ID, o.model.ID) }
 
-// world is what the option's conditions are checked against: the session's
-// values and history, seen from the option's dialogue.
-func (o *Option) world() world {
-	return world{dialogue: o.dialogue.ID, vars: o.session.vars, hist: o.session}
+// seenFrom is the state with relative names (<node>.stateData.played)
+func (o *Option) seenFrom(now world) world {
+	now.dialogue = o.dialogue.ID
+	return now
 }
