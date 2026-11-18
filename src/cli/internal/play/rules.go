@@ -70,15 +70,6 @@ func (w world) text(key string, source *osf.Str) string {
 	return w.ix.resolve(w.ix.text(key, source), w.vars)
 }
 
-// backToOptions reports whether a next target is <node>.options, which offers
-// that node's options again without entering it, and returns the node id.
-func backToOptions(target string) (node string, ok bool) {
-	if strings.HasPrefix(target, "Dialogue.") {
-		return "", false
-	}
-	return strings.CutSuffix(target, ".options")
-}
-
 // trackedHistory lists the history keys some condition of the project reads,
 // sorted. Only those can change how a play goes on.
 func trackedHistory(p *osf.Project) []string {

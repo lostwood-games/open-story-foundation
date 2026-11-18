@@ -10,7 +10,7 @@ import (
 func shopOption(t *testing.T, o *osf.OptionModel, v variables) *Option {
 	t.Helper()
 	shop := &osf.NodeModel{ID: "shop", Text: str("Buy?"), Options: []*osf.OptionModel{o}}
-	d := &osf.Dialogue{ID: "market", Nodes: []*osf.NodeModel{shop, {ID: "thanks", Text: str("Thanks")}, {ID: "poor", Text: str("Too poor")}}}
+	d := &osf.DialogueModel{ID: "market", Nodes: []*osf.NodeModel{shop, {ID: "thanks", Text: str("Thanks")}, {ID: "poor", Text: str("Too poor")}}}
 	s, _ := start(t, project(v, d))
 	return s.options[o]
 }
@@ -104,7 +104,8 @@ func TestOptionNext(t *testing.T) {
 		gold int64
 		want string
 	}{{1, "poor"}, {3, "thanks"}} {
-		got, ok := o.Next(stateWith(map[string]osf.Value{"gold": number(tc.gold)}))
+		to, ok := o.Next(stateWith(map[string]osf.Value{"gold": number(tc.gold)}))
+		got := nodeID(to)
 		if !ok || got != tc.want {
 			t.Errorf("gold %d: Next = %q, %v; want %q, true", tc.gold, got, ok, tc.want)
 		}
@@ -113,7 +114,8 @@ func TestOptionNext(t *testing.T) {
 
 func TestOptionNextNowhere(t *testing.T) {
 	o := shopOption(t, &osf.OptionModel{ID: "buy", Text: str("Buy")}, variables{})
-	if got, ok := o.Next(stateWith(nil)); ok {
+	if to, ok := o.Next(stateWith(nil)); ok {
+		got := nodeID(to)
 		t.Errorf("Next = %q, true; want no target", got)
 	}
 }
@@ -145,7 +147,7 @@ func TestOptionSelectedAnswersConditions(t *testing.T) {
 	buy := &osf.OptionModel{ID: "buy", Text: str("Buy")}
 	again := &osf.OptionModel{ID: "again", Text: str("Again"), Requires: []osf.Assign{is("shop.options.buy.selected", boolean(true))}}
 	shop := &osf.NodeModel{ID: "shop", Text: str("Buy?"), Options: []*osf.OptionModel{buy, again}}
-	s, err := New(project(variables{}, &osf.Dialogue{ID: "market", Nodes: []*osf.NodeModel{shop}}), Options{})
+	s, err := New(project(variables{}, &osf.DialogueModel{ID: "market", Nodes: []*osf.NodeModel{shop}}), Options{})
 	if err != nil {
 		t.Fatal(err)
 	}

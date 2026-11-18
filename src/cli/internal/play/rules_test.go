@@ -40,7 +40,7 @@ type variables struct {
 
 // project is a project with the variables gold, mood and brave and the given
 // dialogues; play starts at the first one.
-func project(v variables, dialogues ...*osf.Dialogue) *osf.Project {
+func project(v variables, dialogues ...*osf.DialogueModel) *osf.Project {
 	return &osf.Project{
 		Variables: []*osf.Variable{
 			{ID: "gold", Type: osf.UnsignedNumber, Default: number(v.gold)},
@@ -84,7 +84,7 @@ func optionIDs(st State) []string {
 // A conditional next follows the first branch whose requires are met, then
 // the plain next.
 func TestConditionalNext(t *testing.T) {
-	gate := &osf.Dialogue{ID: "d", Nodes: []*osf.NodeModel{
+	gate := &osf.DialogueModel{ID: "d", Nodes: []*osf.NodeModel{
 		{
 			ID:   "gate",
 			Text: str("Gate"),
@@ -122,7 +122,7 @@ func TestConditionalNext(t *testing.T) {
 // On an option the branch is checked after the option's set, and an option
 // whose branches are not met and that has no plain next ends the play.
 func TestConditionalNextOnOption(t *testing.T) {
-	d := &osf.Dialogue{ID: "d", Nodes: []*osf.NodeModel{
+	d := &osf.DialogueModel{ID: "d", Nodes: []*osf.NodeModel{
 		{
 			ID:   "shop",
 			Text: str("Shop"),
@@ -170,7 +170,7 @@ func TestConditionalNextOnOption(t *testing.T) {
 // this dialogue or another.
 func TestPlayedAndSelected(t *testing.T) {
 	played := func(name string, want bool) []osf.Assign { return []osf.Assign{is(name, boolean(want))} }
-	d := &osf.Dialogue{ID: "d", Nodes: []*osf.NodeModel{
+	d := &osf.DialogueModel{ID: "d", Nodes: []*osf.NodeModel{
 		{
 			ID:   "hub",
 			Text: str("Hub"),
@@ -184,7 +184,7 @@ func TestPlayedAndSelected(t *testing.T) {
 		},
 		{ID: "rumours", Text: str("They say..."), Next: str("hub")},
 	}}
-	e := &osf.Dialogue{ID: "e", Nodes: []*osf.NodeModel{
+	e := &osf.DialogueModel{ID: "e", Nodes: []*osf.NodeModel{
 		{ID: "far", Text: str("Far"), Options: []*osf.OptionModel{{ID: "home", Text: str("Home"), Next: str("Dialogue.d")}}},
 	}}
 	s, st := start(t, project(variables{}, d, e))
@@ -217,7 +217,7 @@ func TestPlayedAndSelected(t *testing.T) {
 // next: <node>.options offers the node's options again without its line or
 // its set; a plain next to the node enters it again.
 func TestBackToOptions(t *testing.T) {
-	d := &osf.Dialogue{ID: "d", Nodes: []*osf.NodeModel{
+	d := &osf.DialogueModel{ID: "d", Nodes: []*osf.NodeModel{
 		{
 			ID:   "hub",
 			Text: str("Welcome"),
@@ -274,7 +274,7 @@ func TestBackToOptions(t *testing.T) {
 
 // Coverage follows branches, history and <node>.options like a play does.
 func TestCoverageNewFeatures(t *testing.T) {
-	d := &osf.Dialogue{ID: "d", Nodes: []*osf.NodeModel{
+	d := &osf.DialogueModel{ID: "d", Nodes: []*osf.NodeModel{
 		{
 			ID:   "hub",
 			Text: str("Hub"),

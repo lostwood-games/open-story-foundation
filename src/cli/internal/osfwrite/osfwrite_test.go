@@ -208,7 +208,7 @@ func TestProjectLayout(t *testing.T) {
 		Stories:     []*osf.Story{{ID: "s", Name: str("S"), File: "story.yaml"}},
 		Characters:  []*osf.Character{{ID: "a", Name: str("A"), File: "characters/a.yaml"}, {ID: "b", Name: str("B"), File: "people/b.yaml"}},
 		Variables:   []*osf.Variable{{ID: "v", Type: osf.Boolean, File: "variables/v.yaml"}},
-		Dialogues:   []*osf.Dialogue{{ID: "d", Nodes: []*osf.NodeModel{{ID: "n", Text: str("t")}}, File: "act1/d.yaml"}},
+		Dialogues:   []*osf.DialogueModel{{ID: "d", Nodes: []*osf.NodeModel{{ID: "n", Text: str("t")}}, File: "act1/d.yaml"}},
 		I18n:        []*osf.I18n{{Source: str("Eng"), Locales: []osf.LocaleDef{{Name: "Russian", ID: "Rus"}}, File: "plugins/i18n.yaml"}},
 		Locales: []*osf.Locale{
 			{Language: osf.Str{Value: "Rus"}, Values: []osf.LocaleValue{{Key: "Character.a.name", Text: osf.Str{Value: "А"}}}, File: "locales/Rus/characters/a.yaml"},
@@ -256,7 +256,7 @@ func TestBadTranslationKey(t *testing.T) {
 }
 
 func TestEmptyBlocks(t *testing.T) {
-	p := &osf.Project{Dialogues: []*osf.Dialogue{{ID: "d"}}, Locales: []*osf.Locale{{Language: osf.Str{Value: "Rus"}}}}
+	p := &osf.Project{Dialogues: []*osf.DialogueModel{{ID: "d"}}, Locales: []*osf.Locale{{Language: osf.Str{Value: "Rus"}}}}
 	out, err := Source(p, false)
 	if err != nil {
 		t.Fatal(err)

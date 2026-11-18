@@ -690,7 +690,7 @@ func (l *loader) dialogue(data *yaml.Node, pos, end diag.Pos, block func(map[str
 	if d == nil {
 		return
 	}
-	dlg := &osf.Dialogue{ID: l.id(d["id"], "id"), Name: l.text(d["name"], "name"), Pos: pos, End: end, IDPos: l.idPos(d["id"]), File: l.rel, Comments: block(d, "id")}
+	dlg := &osf.DialogueModel{ID: l.id(d["id"], "id"), Name: l.text(d["name"], "name"), Pos: pos, End: end, IDPos: l.idPos(d["id"]), File: l.rel, Comments: block(d, "id")}
 	if s := l.text(d["startNode"], "startNode"); s != nil {
 		dlg.StartNode = s
 	}

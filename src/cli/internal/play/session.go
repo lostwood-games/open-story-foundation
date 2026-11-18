@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"sort"
-	"strings"
 
 	"github.com/lostwood-games/open-story-foundation/src/cli/internal/osf"
 )
@@ -35,20 +34,20 @@ type Options struct {
 // Session plays one dialogue run. Everything it returns is plain data with
 // JSON tags, so a language server can pass it on as is.
 type Session struct {
-	ix       *index
-	start    *osf.Dialogue
-	dialogue *osf.Dialogue
-	node     *Node
-	vars     map[string]osf.Value
-	nodes    map[*osf.NodeModel]*Node     // each remembers whether it was played
-	nodesBy  map[string][]*Node           // by played key, for played conditions
-	options  map[*osf.OptionModel]*Option // each remembers whether it was selected
-	byKey    map[string][]*Option         // by selected key, for selected conditions
-	finished bool
-	lines    []Line // since the last choice
-	all      []Line
-	path     []Visit
-	chosen   *Chosen
+	ix        *index
+	start     *Dialogue
+	dialogues map[string]*Dialogue // by id
+	node      *Node
+	vars      map[string]osf.Value
+	nodes     map[*osf.NodeModel]*Node     // each remembers whether it was played
+	nodesBy   map[string][]*Node           // by played key, for played conditions
+	options   map[*osf.OptionModel]*Option // each remembers whether it was selected
+	byKey     map[string][]*Option         // by selected key, for selected conditions
+	finished  bool
+	lines     []Line // since the last choice
+	all       []Line
+	path      []Visit
+	chosen    *Chosen
 }
 
 // Line is one node shown to the player.
@@ -131,30 +130,61 @@ func New(p *osf.Project, opts Options) (*Session, error) {
 			id = p.Stories[0].Start.Value[len("Dialogue."):]
 		}
 	}
-	d, ok := ix.dialogues[id]
+	s := &Session{ix: ix, dialogues: map[string]*Dialogue{},
+		nodes: map[*osf.NodeModel]*Node{}, nodesBy: map[string][]*Node{},
+		options: map[*osf.OptionModel]*Option{}, byKey: map[string][]*Option{}}
+	s.build(p)
+	d, ok := s.dialogues[id]
 	if !ok {
 		return nil, fmt.Errorf("Dialogue %s does not exist", id)
 	}
-	if startNode(d) == nil {
+	if d.Start() == nil {
 		return nil, fmt.Errorf("Dialogue %s has no nodes", id)
 	}
-	s := &Session{ix: ix, start: d,
-		nodes: map[*osf.NodeModel]*Node{}, nodesBy: map[string][]*Node{},
-		options: map[*osf.OptionModel]*Option{}, byKey: map[string][]*Option{}}
-	for _, d := range p.Dialogues {
-		for _, n := range d.Nodes {
-			node := &Node{model: n, dialogue: d, branches: branchesOf(n.Branches, d.ID)}
+	s.start = d
+	return s, nil
+}
+
+// build makes the Dialogue, Node and Option objects of p, then links every
+// next to the node it leads to, which can be in another dialogue.
+func (s *Session) build(p *osf.Project) {
+	var all []*Dialogue
+	for _, dm := range p.Dialogues {
+		d := &Dialogue{model: dm, byID: map[string]*Node{}}
+		for _, n := range dm.Nodes {
+			node := &Node{model: n, dialogue: d}
+			d.nodes = append(d.nodes, node)
+			if _, dup := d.byID[n.ID]; !dup {
+				d.byID[n.ID] = node
+			}
 			s.nodes[n] = node
 			s.nodesBy[node.key()] = append(s.nodesBy[node.key()], node)
 			for _, o := range n.Options {
-				opt := &Option{model: o, node: node, dialogue: d, conditions: conditionsOf(o.Requires, o.RequiresOr, d.ID), branches: branchesOf(o.Branches, d.ID)}
+				opt := &Option{model: o, node: node, dialogue: d, conditions: conditionsOf(o.Requires, o.RequiresOr, dm.ID)}
 				node.options = append(node.options, opt)
 				s.options[o] = opt
 				s.byKey[opt.key()] = append(s.byKey[opt.key()], opt)
 			}
 		}
+		all = append(all, d)
+		s.dialogues[dm.ID] = d
 	}
-	return s, nil
+	for _, d := range all {
+		for _, n := range d.nodes {
+			n.branches, n.next = branchesOf(n.model.Branches, d, s.dialogues), s.target(d, n.model.Next)
+			for _, o := range n.options {
+				o.branches, o.next = branchesOf(o.model.Branches, d, s.dialogues), s.target(d, o.model.Next)
+			}
+		}
+	}
+}
+
+// target resolves a plain next written in dialogue d; nil when there is none.
+func (s *Session) target(d *Dialogue, next *osf.Str) *Target {
+	if next == nil {
+		return nil
+	}
+	return targetIn(d, next.Value, s.dialogues)
 }
 
 // Start plays from the start node through its next chain and returns the
@@ -171,8 +201,8 @@ func (s *Session) Start() (State, error) {
 		o.selected = false
 	}
 	s.finished, s.lines, s.all, s.path, s.chosen = false, nil, nil, nil, nil
-	s.dialogue, s.node = s.start, nil
-	if err := s.follow(startNode(s.start).ID); err != nil {
+	s.node = nil
+	if err := s.follow(&Target{Node: s.start.Start()}); err != nil {
 		return s.State(), err
 	}
 	return s.State(), nil
@@ -254,48 +284,36 @@ func (s *Session) has(key string) bool {
 	return false
 }
 
-// follow goes to a next target: a node of the current dialogue,
-// <node>.options or Dialogue.<id>, then keeps following next until a node
-// with options or an end.
-func (s *Session) follow(next string) error {
-	d, n := s.dialogue, (*osf.NodeModel)(nil)
+// follow goes to a target, then keeps following next until a node with
+// options or an end.
+func (s *Session) follow(t *Target) error {
 	for steps := 0; ; steps++ {
 		if steps >= MaxChain {
 			s.finished = true
 			return ErrLoop
 		}
-		if strings.HasPrefix(next, "Dialogue.") {
-			nd, ok := s.ix.dialogues[strings.TrimPrefix(next, "Dialogue.")]
-			if !ok {
-				return fmt.Errorf("next: %s does not exist", next)
-			}
-			if d, n = nd, startNode(nd); n == nil {
-				return fmt.Errorf("next: Dialogue %s has no nodes", nd.ID)
-			}
-		} else if id, back := backToOptions(next); back {
+		if t.Err != nil {
+			return t.Err
+		}
+		s.node = t.Node
+		d := s.node.Dialogue().ID()
+		if t.Back {
 			// Offer the node's options again: no line, no set.
-			if n = findNode(d, id); n == nil {
-				return fmt.Errorf("next: node %q does not exist in Dialogue %s", id, d.ID)
-			}
-			s.dialogue, s.node = d, s.nodes[n]
-			s.path = append(s.path, Visit{Dialogue: d.ID, Node: n.ID})
+			s.path = append(s.path, Visit{Dialogue: d, Node: s.node.ID()})
 			s.finished = !s.node.HasOptions()
 			return nil
-		} else if n = findNode(d, next); n == nil {
-			return fmt.Errorf("next: node %q does not exist in Dialogue %s", next, d.ID)
 		}
-		s.dialogue, s.node = d, s.nodes[n]
-		line := Line{Dialogue: d.ID, Node: n.ID, Set: s.node.Enter(s.world())}
+		line := Line{Dialogue: d, Node: s.node.ID(), Set: s.node.Enter(s.world())}
 		line.Speaker, line.Text = s.node.Speaker(s.world()), s.node.Text(s.world())
 		s.lines = append(s.lines, line)
 		s.all = append(s.all, line)
-		s.path = append(s.path, Visit{Dialogue: d.ID, Node: n.ID})
-		target, ok := s.node.Next(s.world())
+		s.path = append(s.path, Visit{Dialogue: d, Node: s.node.ID()})
+		next, ok := s.node.Next(s.world())
 		if !ok {
 			s.finished = !s.node.HasOptions()
 			return nil
 		}
-		next = target
+		t = next
 	}
 }
 
@@ -305,7 +323,7 @@ func (s *Session) State() State {
 	if s.node == nil {
 		return st
 	}
-	st.Dialogue, st.Node = s.dialogue.ID, s.node.ID()
+	st.Dialogue, st.Node = s.node.Dialogue().ID(), s.node.ID()
 	if n := len(s.all); n > 0 {
 		st.Speaker, st.Text = s.all[n-1].Speaker, s.all[n-1].Text
 	}
@@ -335,7 +353,7 @@ func (s *Session) Vars() []Var {
 func (s *Session) Transcript() []Line { return s.all }
 
 // Dialogue is the dialogue the session starts at.
-func (s *Session) Dialogue() string { return s.start.ID }
+func (s *Session) Dialogue() string { return s.start.ID() }
 
 // Resolve replaces {{ }} references in text using the session's locale and
 // current variable values, for callers that show their own texts.

@@ -123,7 +123,7 @@ func variable(w *writer, v *osf.Variable) {
 
 // dialogue writes a Dialogue block; inLocale leaves out everything but text
 // and writes text-only options on one line.
-func dialogue(w *writer, d *osf.Dialogue, inLocale bool) {
+func dialogue(w *writer, d *osf.DialogueModel, inLocale bool) {
 	w.block("Dialogue "+d.ID, d.Comments, func() {
 		var as []assign
 		w.textAssign(&as, "name", d.Name)
@@ -190,7 +190,7 @@ func locale(l *osf.Locale) (block, error) {
 	var stories []*osf.Story
 	var characters []*osf.Character
 	var documents []*osf.Document
-	var dialogues []*osf.Dialogue
+	var dialogues []*osf.DialogueModel
 	for _, v := range l.Values {
 		s := v.Text
 		parts := strings.Split(v.Key, ".")
@@ -218,10 +218,10 @@ func locale(l *osf.Locale) (block, error) {
 			d := find(&documents, id, func(d *osf.Document) string { return d.ID }, func() *osf.Document { return &osf.Document{ID: id} })
 			d.Name = &s
 		case kind == "Dialogue" && len(parts) == 3 && parts[2] == "name":
-			d := find(&dialogues, id, func(d *osf.Dialogue) string { return d.ID }, func() *osf.Dialogue { return &osf.Dialogue{ID: id} })
+			d := find(&dialogues, id, func(d *osf.DialogueModel) string { return d.ID }, func() *osf.DialogueModel { return &osf.DialogueModel{ID: id} })
 			d.Name = &s
 		case kind == "Dialogue" && len(parts) >= 6 && parts[2] == "nodes":
-			d := find(&dialogues, id, func(d *osf.Dialogue) string { return d.ID }, func() *osf.Dialogue { return &osf.Dialogue{ID: id} })
+			d := find(&dialogues, id, func(d *osf.DialogueModel) string { return d.ID }, func() *osf.DialogueModel { return &osf.DialogueModel{ID: id} })
 			n := find(&d.Nodes, parts[3], func(n *osf.NodeModel) string { return n.ID }, func() *osf.NodeModel { return &osf.NodeModel{ID: parts[3]} })
 			switch {
 			case len(parts) == 6 && parts[4] == "content" && parts[5] == "title":

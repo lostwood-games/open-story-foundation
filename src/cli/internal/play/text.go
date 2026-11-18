@@ -19,7 +19,7 @@ type index struct {
 	characters map[string]*osf.Character
 	documents  map[string]*osf.Document
 	stories    map[string]*osf.Story
-	dialogues  map[string]*osf.Dialogue
+	dialogues  map[string]*osf.DialogueModel
 	variables  map[string]*osf.Variable
 }
 
@@ -31,7 +31,7 @@ func newIndex(p *osf.Project, locale string) *index {
 		characters: map[string]*osf.Character{},
 		documents:  map[string]*osf.Document{},
 		stories:    map[string]*osf.Story{},
-		dialogues:  map[string]*osf.Dialogue{},
+		dialogues:  map[string]*osf.DialogueModel{},
 		variables:  map[string]*osf.Variable{},
 	}
 	for _, c := range p.Characters {
@@ -172,31 +172,6 @@ func (ix *index) lookup(kind, id, field string, vars map[string]osf.Value) (stri
 
 // plain is a variable value as shown inside text.
 func plain(v osf.Value) string { return v.String() }
-
-// startNode is the node a dialogue starts at: startNode when set, else the
-// first node. It is nil for an empty dialogue.
-func startNode(d *osf.Dialogue) *osf.NodeModel {
-	if d.StartNode != nil {
-		for _, n := range d.Nodes {
-			if n.ID == d.StartNode.Value {
-				return n
-			}
-		}
-	}
-	if len(d.Nodes) > 0 {
-		return d.Nodes[0]
-	}
-	return nil
-}
-
-func findNode(d *osf.Dialogue, id string) *osf.NodeModel {
-	for _, n := range d.Nodes {
-		if n.ID == id {
-			return n
-		}
-	}
-	return nil
-}
 
 // typeOf is the type of variable name; an unknown one counts as a number.
 func (ix *index) typeOf(name string) osf.VarType {
