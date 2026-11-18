@@ -730,7 +730,7 @@ func (l *loader) dialogue(data *yaml.Node, pos, end diag.Pos, block func(map[str
 							if of == nil {
 								continue
 							}
-							o := &osf.Option{ID: okey.Value, Pos: l.pos(okey), End: l.end(okey), IDPos: l.idPos(okey), Comments: l.comments(ovals[j])}
+							o := &osf.OptionModel{ID: okey.Value, Pos: l.pos(okey), End: l.end(okey), IDPos: l.idPos(okey), Comments: l.comments(ovals[j])}
 							o.Next, o.Branches = next(of["next"], ow)
 							o.Requires, o.RequiresOr, o.RequiresComments = l.requires(of["requires"], ow+".requires")
 							o.Set, o.SetComments = l.values(of["set"], ow+".set")

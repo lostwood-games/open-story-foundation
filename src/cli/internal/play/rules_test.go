@@ -126,7 +126,7 @@ func TestConditionalNextOnOption(t *testing.T) {
 		{
 			ID:   "shop",
 			Text: str("Shop"),
-			Options: []*osf.Option{
+			Options: []*osf.OptionModel{
 				{
 					ID:       "work",
 					Text:     str("Work"),
@@ -174,7 +174,7 @@ func TestPlayedAndSelected(t *testing.T) {
 		{
 			ID:   "hub",
 			Text: str("Hub"),
-			Options: []*osf.Option{
+			Options: []*osf.OptionModel{
 				{ID: "rumours", Text: str("Rumours"), Next: str("rumours")},
 				{ID: "room", Text: str("Room"), Requires: played("rumours.stateData.played", true), Next: str("hub")},
 				{ID: "once", Text: str("Once"), Requires: played("hub.options.once.selected", false), Next: str("hub")},
@@ -185,7 +185,7 @@ func TestPlayedAndSelected(t *testing.T) {
 		{ID: "rumours", Text: str("They say..."), Next: str("hub")},
 	}}
 	e := &osf.Dialogue{ID: "e", Nodes: []*osf.Node{
-		{ID: "far", Text: str("Far"), Options: []*osf.Option{{ID: "home", Text: str("Home"), Next: str("Dialogue.d")}}},
+		{ID: "far", Text: str("Far"), Options: []*osf.OptionModel{{ID: "home", Text: str("Home"), Next: str("Dialogue.d")}}},
 	}}
 	s, st := start(t, project(variables{}, d, e))
 
@@ -222,7 +222,7 @@ func TestBackToOptions(t *testing.T) {
 			ID:   "hub",
 			Text: str("Welcome"),
 			Set:  []osf.Assign{add("gold", 1)},
-			Options: []*osf.Option{
+			Options: []*osf.OptionModel{
 				{ID: "ask", Text: str("Ask"), Next: str("answer")},
 				{ID: "again", Text: str("Again"), Next: str("hub")},
 				{ID: "leave", Text: str("Leave")},
@@ -278,7 +278,7 @@ func TestCoverageNewFeatures(t *testing.T) {
 		{
 			ID:   "hub",
 			Text: str("Hub"),
-			Options: []*osf.Option{
+			Options: []*osf.OptionModel{
 				{
 					ID:       "ask",
 					Text:     str("Ask"),

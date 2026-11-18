@@ -845,9 +845,9 @@ func (p *parser) node(kw Token, inLocale bool) *osf.Node {
 	return n
 }
 
-func (p *parser) option(kw Token, inLocale bool) *osf.Option {
+func (p *parser) option(kw Token, inLocale bool) *osf.OptionModel {
 	id := p.id("an option id")
-	o := &osf.Option{ID: id.Value, Pos: kw.Pos, End: id.End, IDPos: id.Pos, Comments: osf.Comments{Head: p.head}}
+	o := &osf.OptionModel{ID: id.Value, Pos: kw.Pos, End: id.End, IDPos: id.Pos, Comments: osf.Comments{Head: p.head}}
 	seen := fields{}
 	p.block(kw, &o.Comments, func(t Token) {
 		switch t.Text {
