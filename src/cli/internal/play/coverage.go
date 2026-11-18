@@ -44,7 +44,7 @@ type Report struct {
 // variable values and the history at that moment.
 type state struct {
 	d    *osf.Dialogue
-	n    *osf.Node
+	n    *osf.NodeModel
 	vars map[string]osf.Value
 	hist history
 }
@@ -140,7 +140,7 @@ func (e *explorer) with(h history, key string) history {
 // add enters node n with vars and history, marks it played, applies its set
 // and returns the state key. With back the node's options are offered again
 // (next: <node>.options): it is not entered, so nothing is applied.
-func (e *explorer) add(d *osf.Dialogue, n *osf.Node, vars map[string]osf.Value, hist history, back bool) string {
+func (e *explorer) add(d *osf.Dialogue, n *osf.NodeModel, vars map[string]osf.Value, hist history, back bool) string {
 	next := copyVars(vars)
 	if !back {
 		hist = e.with(hist, playedKey(d.ID, n.ID))
@@ -206,7 +206,7 @@ func (e *explorer) expand(key string) {
 
 // target resolves a next value; the node is nil when it points nowhere
 // (validation reports that separately). back is true for <node>.options.
-func (e *explorer) target(d *osf.Dialogue, next string) (nd *osf.Dialogue, n *osf.Node, back bool) {
+func (e *explorer) target(d *osf.Dialogue, next string) (nd *osf.Dialogue, n *osf.NodeModel, back bool) {
 	if strings.HasPrefix(next, "Dialogue.") {
 		nd, ok := e.ix.dialogues[strings.TrimPrefix(next, "Dialogue.")]
 		if !ok {

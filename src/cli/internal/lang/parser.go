@@ -787,9 +787,9 @@ func (p *parser) nextField(t Token, seen fields, next **osf.Str, branches *[]*os
 	p.done(&to.Comments)
 }
 
-func (p *parser) node(kw Token, inLocale bool) *osf.Node {
+func (p *parser) node(kw Token, inLocale bool) *osf.NodeModel {
 	id := p.id("a node id")
-	n := &osf.Node{ID: id.Value, Pos: kw.Pos, End: id.End, IDPos: id.Pos, Comments: osf.Comments{Head: p.head}}
+	n := &osf.NodeModel{ID: id.Value, Pos: kw.Pos, End: id.End, IDPos: id.Pos, Comments: osf.Comments{Head: p.head}}
 	seen := fields{}
 	options := fields{}
 	p.block(kw, &n.Comments, func(t Token) {

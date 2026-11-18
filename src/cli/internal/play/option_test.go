@@ -9,8 +9,8 @@ import (
 
 func shopOption(t *testing.T, o *osf.OptionModel, v variables) *Option {
 	t.Helper()
-	shop := &osf.Node{ID: "shop", Text: str("Buy?"), Options: []*osf.OptionModel{o}}
-	d := &osf.Dialogue{ID: "market", Nodes: []*osf.Node{shop, {ID: "thanks", Text: str("Thanks")}, {ID: "poor", Text: str("Too poor")}}}
+	shop := &osf.NodeModel{ID: "shop", Text: str("Buy?"), Options: []*osf.OptionModel{o}}
+	d := &osf.Dialogue{ID: "market", Nodes: []*osf.NodeModel{shop, {ID: "thanks", Text: str("Thanks")}, {ID: "poor", Text: str("Too poor")}}}
 	s, _ := start(t, project(v, d))
 	return s.options[o]
 }
@@ -132,8 +132,8 @@ func TestOptionSelect(t *testing.T) {
 func TestOptionSelectedAnswersConditions(t *testing.T) {
 	buy := &osf.OptionModel{ID: "buy", Text: str("Buy")}
 	again := &osf.OptionModel{ID: "again", Text: str("Again"), Requires: []osf.Assign{is("shop.options.buy.selected", boolean(true))}}
-	shop := &osf.Node{ID: "shop", Text: str("Buy?"), Options: []*osf.OptionModel{buy, again}}
-	s, err := New(project(variables{}, &osf.Dialogue{ID: "market", Nodes: []*osf.Node{shop}}), Options{})
+	shop := &osf.NodeModel{ID: "shop", Text: str("Buy?"), Options: []*osf.OptionModel{buy, again}}
+	s, err := New(project(variables{}, &osf.Dialogue{ID: "market", Nodes: []*osf.NodeModel{shop}}), Options{})
 	if err != nil {
 		t.Fatal(err)
 	}

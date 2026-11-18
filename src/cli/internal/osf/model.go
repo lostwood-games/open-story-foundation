@@ -265,7 +265,7 @@ type Dialogue struct {
 	ID        string
 	Name      *Str
 	StartNode *Str
-	Nodes     []*Node
+	Nodes     []*NodeModel
 	Pos       diag.Pos
 	End       diag.Pos
 	IDPos     diag.Pos
@@ -273,7 +273,7 @@ type Dialogue struct {
 	Comments  Comments
 }
 
-type Node struct {
+type NodeModel struct {
 	ID          string
 	Speaker     *Str // Character.<id>
 	Title       *Str

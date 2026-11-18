@@ -38,9 +38,10 @@ type Session struct {
 	ix       *index
 	start    *osf.Dialogue
 	dialogue *osf.Dialogue
-	node     *osf.Node
+	node     *Node
 	vars     map[string]osf.Value
-	played   history                      // "<dialogue>.<node>" of each node entered
+	nodes    map[*osf.NodeModel]*Node     // each remembers whether it was played
+	nodesBy  map[string][]*Node           // by played key, for played conditions
 	options  map[*osf.OptionModel]*Option // each remembers whether it was selected
 	byKey    map[string][]*Option         // by selected key, for selected conditions
 	finished bool
@@ -137,11 +138,17 @@ func New(p *osf.Project, opts Options) (*Session, error) {
 	if startNode(d) == nil {
 		return nil, fmt.Errorf("Dialogue %s has no nodes", id)
 	}
-	s := &Session{ix: ix, start: d, options: map[*osf.OptionModel]*Option{}, byKey: map[string][]*Option{}}
+	s := &Session{ix: ix, start: d,
+		nodes: map[*osf.NodeModel]*Node{}, nodesBy: map[string][]*Node{},
+		options: map[*osf.OptionModel]*Option{}, byKey: map[string][]*Option{}}
 	for _, d := range p.Dialogues {
 		for _, n := range d.Nodes {
+			node := &Node{model: n, dialogue: d, session: s}
+			s.nodes[n] = node
+			s.nodesBy[node.key()] = append(s.nodesBy[node.key()], node)
 			for _, o := range n.Options {
-				opt := &Option{model: o, node: n, dialogue: d, session: s, conditions: conditionsOf(o.Requires, o.RequiresOr, d.ID)}
+				opt := &Option{model: o, node: node, dialogue: d, session: s, conditions: conditionsOf(o.Requires, o.RequiresOr, d.ID)}
+				node.options = append(node.options, opt)
 				s.options[o] = opt
 				s.byKey[opt.key()] = append(s.byKey[opt.key()], opt)
 			}
@@ -157,7 +164,9 @@ func (s *Session) Start() (State, error) {
 	for _, v := range s.ix.p.Variables {
 		s.vars[v.ID] = v.Default
 	}
-	s.played = history{}
+	for _, n := range s.nodes {
+		n.played = false
+	}
 	for _, o := range s.options {
 		o.selected = false
 	}
@@ -183,7 +192,7 @@ func (s *Session) Choose(index int) (State, error) {
 	if s.finished {
 		return s.State(), ErrFinished
 	}
-	opts := s.allowedOptions()
+	opts := s.node.AvailableOptions(s.world())
 	if index < 1 || index > len(opts) {
 		return s.State(), fmt.Errorf("choice %d is out of range (1-%d)", index, len(opts))
 	}
@@ -200,7 +209,7 @@ func (s *Session) ChooseID(id string) (State, error) {
 	if s.finished {
 		return s.State(), ErrFinished
 	}
-	for i, o := range s.allowedOptions() {
+	for i, o := range s.node.AvailableOptions(s.world()) {
 		if o.ID() == id {
 			return s.choose(i+1, o)
 		}
@@ -237,14 +246,19 @@ func (s *Session) has(key string) bool {
 			return true
 		}
 	}
-	return s.played[key]
+	for _, n := range s.nodesBy[key] {
+		if n.IsPlayed() {
+			return true
+		}
+	}
+	return false
 }
 
 // follow goes to a next target: a node of the current dialogue,
 // <node>.options or Dialogue.<id>, then keeps following next until a node
 // with options or an end.
 func (s *Session) follow(next string) error {
-	d, n := s.dialogue, (*osf.Node)(nil)
+	d, n := s.dialogue, (*osf.NodeModel)(nil)
 	for steps := 0; ; steps++ {
 		if steps >= MaxChain {
 			s.finished = true
@@ -263,23 +277,22 @@ func (s *Session) follow(next string) error {
 			if n = findNode(d, id); n == nil {
 				return fmt.Errorf("next: node %q does not exist in Dialogue %s", id, d.ID)
 			}
-			s.dialogue, s.node = d, n
+			s.dialogue, s.node = d, s.nodes[n]
 			s.path = append(s.path, Visit{Dialogue: d.ID, Node: n.ID})
-			s.finished = len(n.Options) == 0
+			s.finished = !s.node.HasOptions()
 			return nil
 		} else if n = findNode(d, next); n == nil {
 			return fmt.Errorf("next: node %q does not exist in Dialogue %s", next, d.ID)
 		}
-		s.dialogue, s.node = d, n
-		s.played[playedKey(d.ID, n.ID)] = true
-		line := Line{Dialogue: d.ID, Node: n.ID, Set: s.apply(n.Set)}
-		line.Speaker, line.Text = s.speaker(n), s.nodeText(n)
+		s.dialogue, s.node = d, s.nodes[n]
+		line := Line{Dialogue: d.ID, Node: n.ID, Set: s.node.Enter()}
+		line.Speaker, line.Text = s.node.Speaker(), s.node.Text()
 		s.lines = append(s.lines, line)
 		s.all = append(s.all, line)
 		s.path = append(s.path, Visit{Dialogue: d.ID, Node: n.ID})
-		target, ok := s.world().next(n.Branches, n.Next)
+		target, ok := s.node.Next(s.world())
 		if !ok {
-			s.finished = len(n.Options) == 0
+			s.finished = !s.node.HasOptions()
 			return nil
 		}
 		next = target
@@ -295,49 +308,18 @@ func (s *Session) apply(set []osf.Assign) []Change {
 	return out
 }
 
-func (s *Session) speaker(n *osf.Node) string {
-	key := "Dialogue." + s.dialogue.ID + ".nodes." + n.ID + ".content."
-	if n.Title != nil {
-		return s.ix.resolve(s.ix.text(key+"title", n.Title), s.vars)
-	}
-	if n.Speaker != nil {
-		id := n.Speaker.Value[len("Character."):]
-		if c, ok := s.ix.characters[id]; ok {
-			return s.ix.resolve(s.ix.text("Character."+id+".name", c.Name), s.vars)
-		}
-	}
-	return ""
-}
-
-func (s *Session) nodeText(n *osf.Node) string {
-	key := "Dialogue." + s.dialogue.ID + ".nodes." + n.ID + ".content.text"
-	return s.ix.resolve(s.ix.text(key, n.Text), s.vars)
-}
-
-// allowedOptions lists the current node's options that are available now.
-func (s *Session) allowedOptions() []*Option {
-	var out []*Option
-	for _, o := range s.node.Options {
-		opt := s.options[o]
-		if ok, _ := opt.IsAvailable(s.world()); ok {
-			out = append(out, opt)
-		}
-	}
-	return out
-}
-
 // State is the current state; before Start it is empty.
 func (s *Session) State() State {
 	st := State{Finished: s.finished, Lines: s.lines, Path: s.path, Vars: s.Vars(), Chosen: s.chosen}
 	if s.node == nil {
 		return st
 	}
-	st.Dialogue, st.Node = s.dialogue.ID, s.node.ID
+	st.Dialogue, st.Node = s.dialogue.ID, s.node.ID()
 	if n := len(s.all); n > 0 {
 		st.Speaker, st.Text = s.all[n-1].Speaker, s.all[n-1].Text
 	}
 	if !s.finished {
-		for i, o := range s.allowedOptions() {
+		for i, o := range s.node.AvailableOptions(s.world()) {
 			st.Options = append(st.Options, Choice{Index: i + 1, ID: o.ID(), Text: o.Text()})
 		}
 	}
