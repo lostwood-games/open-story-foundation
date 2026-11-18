@@ -52,6 +52,23 @@ type world struct {
 	dialogue string
 	vars     map[string]osf.Value
 	hist     historyReader
+	ix       *index // texts, characters and variable types of the project
+}
+
+// apply runs a set block on the world's values and returns what changed.
+func (w world) apply(set []osf.Assign) []Change {
+	var out []Change
+	for _, a := range set {
+		w.vars[a.Name] = a.Apply(w.ix.typeOf(a.Name), w.vars[a.Name])
+		out = append(out, Change{Name: a.Name, Value: jsonValue(w.vars[a.Name])})
+	}
+	return out
+}
+
+// text is the translation of key in the play's locale (or the source text),
+// with {{ }} references resolved against the world's values.
+func (w world) text(key string, source *osf.Str) string {
+	return w.ix.resolve(w.ix.text(key, source), w.vars)
 }
 
 // holds reports whether one requires entry is met.

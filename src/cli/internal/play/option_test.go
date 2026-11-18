@@ -21,7 +21,15 @@ func stateWith(vars map[string]osf.Value, hist ...string) world {
 	for _, k := range hist {
 		h[k] = true
 	}
-	return world{dialogue: "market", vars: vars, hist: h}
+	return world{dialogue: "market", vars: vars, hist: h, ix: testIndex()}
+}
+
+// testIndex holds the variable types (gold is unsigned) and texts of a
+// project with the variables gold, mood and brave and a character guard.
+func testIndex() *index {
+	p := project(variables{})
+	p.Characters = []*osf.Character{{ID: "guard", Name: str("Guard")}}
+	return newIndex(p, "")
 }
 
 func TestOptionIsAvailable(t *testing.T) {
@@ -113,11 +121,12 @@ func TestOptionNextNowhere(t *testing.T) {
 
 func TestOptionSelect(t *testing.T) {
 	model := &osf.OptionModel{ID: "buy", Text: str("Buy"), Set: []osf.Assign{add("gold", -5), is("brave", boolean(true))}}
-	o := shopOption(t, model, variables{gold: 3})
+	o := shopOption(t, model, variables{})
 	if o.IsSelected() {
 		t.Fatal("IsSelected = true before Select")
 	}
-	changes := o.Select()
+	vars := map[string]osf.Value{"gold": number(3), "brave": boolean(false)}
+	changes := o.Select(stateWith(vars))
 	if !o.IsSelected() {
 		t.Error("IsSelected = false after Select")
 	}
@@ -125,6 +134,10 @@ func TestOptionSelect(t *testing.T) {
 	want := []Change{{Name: "gold", Value: int64(0)}, {Name: "brave", Value: true}}
 	if !reflect.DeepEqual(changes, want) {
 		t.Errorf("Select changes = %v, want %v", changes, want)
+	}
+	// Select changes the state it was given.
+	if vars["gold"] != number(0) || vars["brave"] != boolean(true) {
+		t.Errorf("state after Select = %v, want gold 0, brave true", vars)
 	}
 }
 
@@ -143,15 +156,15 @@ func TestOptionSelectedAnswersConditions(t *testing.T) {
 	if ok, _ := s.options[again].IsAvailable(s.world()); ok {
 		t.Fatal("again is available before buy was selected")
 	}
-	s.options[buy].Select()
+	s.options[buy].Select(s.world())
 	if ok, reasons := s.options[again].IsAvailable(s.world()); !ok {
 		t.Errorf("again is not available after buy was selected: %v", reasons)
 	}
 }
 
 func TestOptionText(t *testing.T) {
-	o := shopOption(t, &osf.OptionModel{ID: "buy", Text: str("Pay with {{ Variable.gold }} gold")}, variables{gold: 7})
-	if got, want := o.Text(), "Pay with 7 gold"; got != want {
+	o := shopOption(t, &osf.OptionModel{ID: "buy", Text: str("Pay with {{ Variable.gold }} gold")}, variables{})
+	if got, want := o.Text(stateWith(map[string]osf.Value{"gold": number(7)})), "Pay with 7 gold"; got != want {
 		t.Errorf("Text = %q, want %q", got, want)
 	}
 }
