@@ -281,7 +281,7 @@ type Node struct {
 	Next        *Str      // followed when no branch matches
 	Branches    []*Branch // conditional next, tried in order before Next
 	Set         []Assign
-	Options     []*Option
+	Options     []*OptionModel
 	Pos         diag.Pos
 	End         diag.Pos
 	IDPos       diag.Pos
@@ -289,7 +289,7 @@ type Node struct {
 	SetComments Comments // around the set statement
 }
 
-type Option struct {
+type OptionModel struct {
 	ID               string
 	Text             *Str
 	Next             *Str       // followed when no branch matches

@@ -11,6 +11,14 @@ import (
 // entered and "<dialogue>.<node>.<option>" once an option was chosen.
 type history map[string]bool
 
+func (h history) has(key string) bool { return h[key] }
+
+// historyReader answers whether a history key is set: a history map, or a
+// session that asks its Option objects.
+type historyReader interface {
+	has(key string) bool
+}
+
 func playedKey(dialogue, node string) string { return dialogue + "." + node }
 
 func selectedKey(dialogue, node, option string) string {
@@ -43,13 +51,13 @@ func historyKey(name, dlg string) (key string, ok bool) {
 type world struct {
 	dialogue string
 	vars     map[string]osf.Value
-	hist     history
+	hist     historyReader
 }
 
 // holds reports whether one requires entry is met.
 func (w world) holds(a osf.Assign) bool {
 	if key, ok := historyKey(a.Name, w.dialogue); ok {
-		return a.Holds(osf.Value{Kind: osf.Bool, Bool: w.hist[key]})
+		return a.Holds(osf.Value{Kind: osf.Bool, Bool: w.hist.has(key)})
 	}
 	v, ok := w.vars[a.Name]
 	return ok && a.Holds(v)
@@ -75,7 +83,7 @@ func (w world) met(first []osf.Assign, or [][]osf.Assign) bool {
 }
 
 // allowed reports whether an option is offered.
-func (w world) allowed(o *osf.Option) bool { return w.met(o.Requires, o.RequiresOr) }
+func (w world) allowed(o *osf.OptionModel) bool { return w.met(o.Requires, o.RequiresOr) }
 
 // next picks where a node or an option leads: the first branch whose
 // requires are met, else the plain next. ok is false when it leads nowhere,

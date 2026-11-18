@@ -229,7 +229,7 @@ func locale(l *osf.Locale) (block, error) {
 			case len(parts) == 6 && parts[4] == "content" && parts[5] == "text":
 				n.Text = &s
 			case len(parts) == 8 && parts[4] == "options" && parts[6] == "content" && parts[7] == "text":
-				o := find(&n.Options, parts[5], func(o *osf.Option) string { return o.ID }, func() *osf.Option { return &osf.Option{ID: parts[5]} })
+				o := find(&n.Options, parts[5], func(o *osf.OptionModel) string { return o.ID }, func() *osf.OptionModel { return &osf.OptionModel{ID: parts[5]} })
 				o.Text = &s
 			default:
 				return block{}, bad
