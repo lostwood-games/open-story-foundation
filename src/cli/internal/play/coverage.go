@@ -125,8 +125,8 @@ func histKey(h history) string {
 
 // restore puts the objects in a remembered state: every node and
 // option in hist is marked played or selected, nothing else is, and the
-// returned world holds a copy of vars.
-func (e *explorer) restore(vars map[string]osf.Value, hist history) world {
+// returned GameState holds a copy of vars.
+func (e *explorer) restore(vars map[string]osf.Value, hist history) GameState {
 	for _, clear := range e.touched {
 		clear()
 	}
@@ -141,7 +141,7 @@ func (e *explorer) restore(vars map[string]osf.Value, hist history) world {
 			e.undoLater(func() { o.selected = false })
 		}
 	}
-	return world{vars: copyVars(vars), hist: e.s, ix: e.s.ix}
+	return GameState{vars: copyVars(vars), hist: e.s, ix: e.s.ix}
 }
 
 // undoLater remembers how to clear a flag that was set, for the next restore.

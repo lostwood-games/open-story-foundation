@@ -46,16 +46,17 @@ func historyKey(name, dlg string) (key string, ok bool) {
 	return "", false
 }
 
-// world is what conditions are checked against: the variable values and the
-// play history.
-type world struct {
+// GameState is the state of a play that the objects are asked about and
+// change: the variable values and the play history, plus the project's texts
+// and variable types to read them with.
+type GameState struct {
 	vars map[string]osf.Value
 	hist historyReader
 	ix   *index // texts, characters and variable types of the project
 }
 
-// apply runs a set block on the world's values and returns what changed.
-func (w world) apply(set []osf.Assign) []Change {
+// apply runs a set block on the state's values and returns what changed.
+func (w GameState) apply(set []osf.Assign) []Change {
 	var out []Change
 	for _, a := range set {
 		w.vars[a.Name] = a.Apply(w.ix.typeOf(a.Name), w.vars[a.Name])
@@ -65,8 +66,8 @@ func (w world) apply(set []osf.Assign) []Change {
 }
 
 // text is the translation of key in the play's locale (or the source text),
-// with {{ }} references resolved against the world's values.
-func (w world) text(key string, source *osf.Str) string {
+// with {{ }} references resolved against the state's values.
+func (w GameState) text(key string, source *osf.Str) string {
 	return w.ix.resolve(w.ix.text(key, source), w.vars)
 }
 

@@ -8,7 +8,7 @@ import (
 )
 
 type Condition interface {
-	Check(now world) (met bool, reason string)
+	Check(now GameState) (met bool, reason string)
 }
 
 // conditionsOf turns a requires written in dialogue into conditions that
@@ -47,7 +47,7 @@ type variableCondition struct {
 	assign osf.Assign
 }
 
-func (c variableCondition) Check(now world) (bool, string) {
+func (c variableCondition) Check(now GameState) (bool, string) {
 	value, ok := now.vars[c.assign.Name]
 	if !ok {
 		return false, fmt.Sprintf("requires %s, but %s has no value", c.assign.RequiresString(), c.assign.Name)
@@ -65,7 +65,7 @@ type historyCondition struct {
 	key    string // the history key, already resolved in the condition's dialogue
 }
 
-func (c historyCondition) Check(now world) (bool, string) {
+func (c historyCondition) Check(now GameState) (bool, string) {
 	happened := now.hist.has(c.key)
 	if !c.assign.Holds(osf.Value{Kind: osf.Bool, Bool: happened}) {
 		return false, fmt.Sprintf("requires %s, but it is %v", c.assign.RequiresString(), happened)
@@ -77,7 +77,7 @@ func (c historyCondition) Check(now world) (bool, string) {
 // its groups is met.
 type anyOf [][]Condition
 
-func (c anyOf) Check(now world) (bool, string) {
+func (c anyOf) Check(now GameState) (bool, string) {
 	var reasons []string
 	for _, group := range c {
 		var notMet []string

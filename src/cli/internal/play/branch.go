@@ -18,7 +18,7 @@ func (b *Branch) To() *Target { return b.to }
 
 // CanBeTaken reports whether the branch can be followed in the given state.
 // If cannot will return reasons.
-func (b *Branch) CanBeTaken(now world) (bool, []string) {
+func (b *Branch) CanBeTaken(now GameState) (bool, []string) {
 	var notMet []string
 	for _, condition := range b.conditions {
 		if met, reason := condition.Check(now); !met {
@@ -43,7 +43,7 @@ func branchesOf(branches []*osf.Branch, d *Dialogue, dialogues map[string]*Dialo
 // leadsTo is where a node or an option goes in the given state: the first
 // branch that can be taken, else the plain next. ok is false when it leads
 // nowhere, which ends the play.
-func leadsTo(branches []*Branch, plain *Target, now world) (target *Target, ok bool) {
+func leadsTo(branches []*Branch, plain *Target, now GameState) (target *Target, ok bool) {
 	for _, b := range branches {
 		if ok, _ := b.CanBeTaken(now); ok {
 			return b.To(), true

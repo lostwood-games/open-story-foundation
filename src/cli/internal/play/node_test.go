@@ -123,11 +123,11 @@ func TestNodePlayedAnswersConditions(t *testing.T) {
 	ask := &osf.OptionModel{ID: "ask", Text: str("Ask"), Requires: []osf.Assign{is("gate.stateData.played", boolean(true))}}
 	model := &osf.NodeModel{ID: "gate", Text: str("A gate"), Options: []*osf.OptionModel{ask}}
 	s, n := gateNode(t, model, variables{})
-	if ok, _ := s.options[ask].IsAvailable(s.world()); ok {
+	if ok, _ := s.options[ask].IsAvailable(s.gameState()); ok {
 		t.Fatal("ask is available before gate was played")
 	}
-	n.Enter(s.world())
-	if ok, reasons := s.options[ask].IsAvailable(s.world()); !ok {
+	n.Enter(s.gameState())
+	if ok, reasons := s.options[ask].IsAvailable(s.gameState()); !ok {
 		t.Errorf("ask is not available after gate was played: %v", reasons)
 	}
 }
