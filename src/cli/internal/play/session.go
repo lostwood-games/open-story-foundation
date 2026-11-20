@@ -222,7 +222,7 @@ func (s *Session) Choose(index int) (State, error) {
 	if s.finished {
 		return s.State(), ErrFinished
 	}
-	opts := s.node.AvailableOptions(s.world())
+	opts := s.node.AvailableOptions(s.gameState())
 	if index < 1 || index > len(opts) {
 		return s.State(), fmt.Errorf("choice %d is out of range (1-%d)", index, len(opts))
 	}
@@ -239,7 +239,7 @@ func (s *Session) ChooseID(id string) (State, error) {
 	if s.finished {
 		return s.State(), ErrFinished
 	}
-	for i, o := range s.node.AvailableOptions(s.world()) {
+	for i, o := range s.node.AvailableOptions(s.gameState()) {
 		if o.ID() == id {
 			return s.choose(i+1, o)
 		}
@@ -250,9 +250,9 @@ func (s *Session) ChooseID(id string) (State, error) {
 func (s *Session) choose(index int, o *Option) (State, error) {
 	s.path[len(s.path)-1].Option = o.ID()
 	s.lines = nil
-	s.chosen = &Chosen{Index: index, ID: o.ID(), Text: o.Text(s.world())}
-	s.chosen.Set = o.Select(s.world())
-	next, ok := o.Next(s.world())
+	s.chosen = &Chosen{Index: index, ID: o.ID(), Text: o.Text(s.gameState())}
+	s.chosen.Set = o.Select(s.gameState())
+	next, ok := o.Next(s.gameState())
 	if !ok {
 		s.finished = true
 		return s.State(), nil
@@ -263,9 +263,9 @@ func (s *Session) choose(index int, o *Option) (State, error) {
 	return s.State(), nil
 }
 
-// world is what conditions are checked against at this moment.
-func (s *Session) world() world {
-	return world{vars: s.vars, hist: s, ix: s.ix}
+// gameState is the state of the play at this moment, to pass to the objects.
+func (s *Session) gameState() GameState {
+	return GameState{vars: s.vars, hist: s, ix: s.ix}
 }
 
 // has reports whether a history key is set: a node that was entered, or an
@@ -303,12 +303,12 @@ func (s *Session) follow(t *Target) error {
 			s.finished = !s.node.HasOptions()
 			return nil
 		}
-		line := Line{Dialogue: d, Node: s.node.ID(), Set: s.node.Enter(s.world())}
-		line.Speaker, line.Text = s.node.Speaker(s.world()), s.node.Text(s.world())
+		line := Line{Dialogue: d, Node: s.node.ID(), Set: s.node.Enter(s.gameState())}
+		line.Speaker, line.Text = s.node.Speaker(s.gameState()), s.node.Text(s.gameState())
 		s.lines = append(s.lines, line)
 		s.all = append(s.all, line)
 		s.path = append(s.path, Visit{Dialogue: d, Node: s.node.ID()})
-		next, ok := s.node.Next(s.world())
+		next, ok := s.node.Next(s.gameState())
 		if !ok {
 			s.finished = !s.node.HasOptions()
 			return nil
@@ -328,8 +328,8 @@ func (s *Session) State() State {
 		st.Speaker, st.Text = s.all[n-1].Speaker, s.all[n-1].Text
 	}
 	if !s.finished {
-		for i, o := range s.node.AvailableOptions(s.world()) {
-			st.Options = append(st.Options, Choice{Index: i + 1, ID: o.ID(), Text: o.Text(s.world())})
+		for i, o := range s.node.AvailableOptions(s.gameState()) {
+			st.Options = append(st.Options, Choice{Index: i + 1, ID: o.ID(), Text: o.Text(s.gameState())})
 		}
 	}
 	return st

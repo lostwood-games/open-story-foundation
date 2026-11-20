@@ -20,7 +20,7 @@ func (n *Node) Options() []*Option { return n.options }
 
 func (n *Node) HasOptions() bool { return len(n.options) > 0 }
 
-func (n *Node) AvailableOptions(now world) []*Option {
+func (n *Node) AvailableOptions(now GameState) []*Option {
 	var out []*Option
 	for _, o := range n.options {
 		if ok, _ := o.IsAvailable(now); ok {
@@ -33,16 +33,16 @@ func (n *Node) AvailableOptions(now world) []*Option {
 // (<node>.stateData.played).
 func (n *Node) IsPlayed() bool { return n.played }
 
-func (n *Node) Enter(now world) []Change {
+func (n *Node) Enter(now GameState) []Change {
 	n.played = true
 	return now.apply(n.model.Set)
 }
 
-func (n *Node) Next(now world) (target *Target, ok bool) {
+func (n *Node) Next(now GameState) (target *Target, ok bool) {
 	return leadsTo(n.branches, n.next, now)
 }
 
-func (n *Node) Speaker(now world) string {
+func (n *Node) Speaker(now GameState) string {
 	if n.model.Title != nil {
 		return now.text(n.textKey()+"title", n.model.Title)
 	}
@@ -55,7 +55,7 @@ func (n *Node) Speaker(now world) string {
 	return ""
 }
 
-func (n *Node) Text(now world) string {
+func (n *Node) Text(now GameState) string {
 	return now.text(n.textKey()+"text", n.model.Text)
 }
 

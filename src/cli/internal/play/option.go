@@ -15,7 +15,7 @@ type Option struct {
 func (o *Option) ID() string { return o.model.ID }
 
 // will also return reasons
-func (o *Option) IsAvailable(now world) (bool, []string) {
+func (o *Option) IsAvailable(now GameState) (bool, []string) {
 	if len(o.conditions) == 0 {
 		return true, nil
 	}
@@ -31,17 +31,17 @@ func (o *Option) IsAvailable(now world) (bool, []string) {
 // (<node>.options.<option>.selected).
 func (o *Option) IsSelected() bool { return o.selected }
 
-func (o *Option) Select(now world) []Change {
+func (o *Option) Select(now GameState) []Change {
 	o.selected = true
 	return now.apply(o.model.Set)
 }
 
-func (o *Option) Next(now world) (target *Target, ok bool) {
+func (o *Option) Next(now GameState) (target *Target, ok bool) {
 	return leadsTo(o.branches, o.next, now)
 }
 
 // Text is the option's text in the play's locale, with references resolved.
-func (o *Option) Text(now world) string {
+func (o *Option) Text(now GameState) string {
 	key := "Dialogue." + o.dialogue.ID() + ".nodes." + o.node.ID() + ".options." + o.model.ID + ".content.text"
 	return now.text(key, o.model.Text)
 }

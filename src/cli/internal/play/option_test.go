@@ -15,13 +15,13 @@ func shopOption(t *testing.T, o *osf.OptionModel, v variables) *Option {
 	return s.options[o]
 }
 
-// stateWith is a world with the given values and the history keys that are set.
-func stateWith(vars map[string]osf.Value, hist ...string) world {
+// stateWith is a GameState with the given values and the history keys that are set.
+func stateWith(vars map[string]osf.Value, hist ...string) GameState {
 	h := history{}
 	for _, k := range hist {
 		h[k] = true
 	}
-	return world{vars: vars, hist: h, ix: testIndex()}
+	return GameState{vars: vars, hist: h, ix: testIndex()}
 }
 
 // testIndex holds the variable types (gold is unsigned) and texts of a
@@ -154,11 +154,11 @@ func TestOptionSelectedAnswersConditions(t *testing.T) {
 	if _, err := s.Start(); err != nil {
 		t.Fatal(err)
 	}
-	if ok, _ := s.options[again].IsAvailable(s.world()); ok {
+	if ok, _ := s.options[again].IsAvailable(s.gameState()); ok {
 		t.Fatal("again is available before buy was selected")
 	}
-	s.options[buy].Select(s.world())
-	if ok, reasons := s.options[again].IsAvailable(s.world()); !ok {
+	s.options[buy].Select(s.gameState())
+	if ok, reasons := s.options[again].IsAvailable(s.gameState()); !ok {
 		t.Errorf("again is not available after buy was selected: %v", reasons)
 	}
 }
